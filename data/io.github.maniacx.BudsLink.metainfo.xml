@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>@APP_ID@</id>
+
+  <name>BudsLink</name>
+  <summary>Monitor and control Bluetooth earbuds</summary>
+
+  <description>
+    <p>
+      BudsLink provides comprehensive battery monitoring and feature control for supported Bluetooth wearable audio devices, including popular models from Apple, Beats, and Sony. The application communicates directly with supported devices to expose battery levels, noise control modes, and advanced interaction features when available, offering a consistent and configurable interface across different vendors.
+    </p>
+    <ul>
+      <li>Monitor earbud and charging case battery levels</li>
+      <li>Control Active Noise Cancellation and ambient sound modes</li>
+      <li>Support conversation awareness on compatible devices</li>
+      <li>Automatic volume reduction during conversation awareness</li>
+      <li>Media pause and resume using in-ear detection</li>
+      <li>Device-specific configuration for gestures and controls</li>
+      <li>Customizable device icons and appearance settings</li>
+      <li>Optional overrides for system dark mode and accent colors</li>
+    </ul>
+  </description>
+
+  <metadata_license>CC-BY-SA-4.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <developer id="com.github.maniacx">
+    <name>maniacx</name>
+    <email>maniacx@github.com</email>
+  </developer>
+
+  <url type="homepage">https://github.com/maniacx/BudsLink/</url>
+  <url type="bugtracker">https://github.com/maniacx/BudsLink/issues</url>
+  <url type="help">https://maniacx.github.io/BudsLink/</url>
+  <url type="translate">https://maniacx.github.io/BudsLink/translation</url>
+
+  <content_rating type="oars-1.1" />
+
+  <launchable type="desktop-id">@APP_ID@.desktop</launchable>
+
+  <translation type="gettext">@APP_ID@</translation>
+
+  <custom>
+    <value key="Purism::form_factor">mobile</value>
+  </custom>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#aaffcc</color>
+    <color type="primary" scheme_preference="dark">#165016</color>
+  </branding>
+
+  <keywords>
+    <keyword>Bluetooth</keyword>
+    <keyword>Earbuds</keyword>
+    <keyword>Headphones</keyword>
+    <keyword>Battery</keyword>
+    <keyword>ANC</keyword>
+    <keyword>TouchControls</keyword>
+    <keyword>Sony</keyword>
+    <keyword>AirPods</keyword>
+  </keywords>
+
+  <screenshots>
+    <screenshot type="default" environment="gnome" xml:lang="en">
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/ac78f8161145b1258e42eb47a2b7aef820ee78df/resources/budlink-light-airpod.png</image>
+    </screenshot>
+    <screenshot environment="gnome" xml:lang="en">
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/ac78f8161145b1258e42eb47a2b7aef820ee78df/resources/budlink-light-sony.png</image>
+    </screenshot>
+    <screenshot environment="gnome" xml:lang="en">
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/ac78f8161145b1258e42eb47a2b7aef820ee78df/resources/budlink-light-main.png</image>
+    </screenshot>
+    <screenshot environment="gnome:dark" xml:lang="en">
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/ac78f8161145b1258e42eb47a2b7aef820ee78df/resources/budlink-dark-airpod.png</image>
+    </screenshot>
+    <screenshot environment="gnome:dark" xml:lang="en">
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/ac78f8161145b1258e42eb47a2b7aef820ee78df/resources/budlink-dark-sony.png</image>
+    </screenshot>
+    <screenshot environment="gnome:dark" xml:lang="en">
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/ac78f8161145b1258e42eb47a2b7aef820ee78df/resources/budlink-dark-main.png</image>
+    </screenshot>
+  </screenshots>
+
+  <releases>
+    <release version="0.1.0" date="2026-01-24">
+      <description>
+        <ul>
+          <li>Initial release</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+</component>
+

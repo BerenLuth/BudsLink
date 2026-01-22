@@ -1,0 +1,29 @@
+app-id: io.github.maniacx.BudsLink
+runtime: org.gnome.Platform
+runtime-version: "49"
+sdk: org.gnome.Sdk
+command: budslink
+
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --env=PULSE_PROP_media.category=Manager
+  - --system-talk-name=org.bluez
+  - --talk-name=org.mpris.MediaPlayer2.*
+  - --socket=pulseaudio
+  - --device=dri
+
+  # Environment variables
+  - --env=GJS_DEBUG_TOPICS=JS ERROR;JS LOG
+
+  # Developer permissions
+  - --allow=devel
+
+modules:
+  - name: BudsLink
+    buildsystem: meson
+    sources:
+      - type: dir
+        path: .
+
