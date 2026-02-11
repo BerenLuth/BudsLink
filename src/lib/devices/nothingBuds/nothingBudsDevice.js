@@ -1,0 +1,721 @@
+'use strict';
+import Gio from 'gi://Gio';
+import GObject from 'gi://GObject';
+import {Gtxt as _} from '../../../appLibs/utils.js';
+
+import {createLogger} from '../logger.js';
+import {buds2to1BatteryLevel, validateProperties, launchConfigureWindow} from '../deviceUtils.js';
+import {createConfig, createProperties, DataHandler} from '../../dataHandler.js';
+import {NothingBudsSocket} from './nothingBudsSocket.js';
+// import {} from './nothingBudsConfig.js';
+
+export const DeviceTypeNothingBuds = 'nothingBuds';
+
+const NothingBudsUUID = 'aeac4a03-dff5-498f-843a-34487cf133eb';
+export function isNothingBuds(bluezDeviceProxy, uuids) {
+    const bluezProps = [];
+    const supported = uuids.includes(NothingBudsUUID) ? 'yes' : 'no';
+    return {supported, bluezProps};
+}
+
+export const NothingBudsDevice = GObject.registerClass({
+    GTypeName: 'BudsLink_NothingBudsDevice',
+}, class NothingBudsDevice extends GObject.Object {
+    _init(settings, devicePath, alias, extPath, profileManager, updateDeviceMapCb) {
+        super._init();
+        const identifier = devicePath.slice(-2);
+        const tag = `NothingBudsDevice-${identifier}`;
+        this._log = createLogger(tag);
+        this._log.info('------------------- NothingBudsDevice init -------------------');
+        this._settings = settings;
+        this._devicePath = devicePath;
+        this._alias = alias;
+        this._extPath = extPath;
+        this.updateDeviceMapCb = updateDeviceMapCb;
+
+        this._config = createConfig();
+        this._props = createProperties();
+        this._modelData = null;
+
+        this._callbacks = {
+            modelIntialized: this.modelIntialized.bind(this),
+            updateFirmwareInfo: this.updateFirmwareInfo.bind(this),
+            updateBatteryProps: this.updateBatteryProps.bind(this),
+            updateNoiseControl: this.updateNoiseControl.bind(this),
+            updatePersonalizedAnc: this.updatePersonalizedAnc.bind(this),
+            updateEqPreset: this.updateEqPreset.bind(this),
+            updateCustomEq: this.updateCustomEq.bind(this),
+            updateEnhancedBass: this.updateEnhancedBass.bind(this),
+            updateLatency: this.updateLatency.bind(this),
+            updateInEar: this.updateInEar.bind(this),
+            updateGestures: this.updateGestures.bind(this),
+        };
+
+        const profile = {type: DeviceTypeNothingBuds, uuid: NothingBudsUUID};
+
+        this._nothingBudsSocket = new NothingBudsSocket(
+            this._devicePath,
+            profileManager,
+            profile,
+            this._callbacks
+        );
+    }
+
+    modelIntialized(modelData) {
+        this._modelData = modelData;
+
+        this._log.info(`Configuration: ${JSON.stringify(this._modelData, null, 2)}`);
+
+        this._commonIcon = this._modelData.budsIcon;
+        this._config.battery1ShowOnDisconnect = true;
+        this._config.showSettingsButton = true;
+
+        if (this._modelData.batteryCase)
+            this._caseIcon = `${this._modelData.case}`;
+
+        this._createDefaultSettings();
+
+        const devicesList = this._settings.get_strv('nothingBuds-list').map(JSON.parse);
+
+        if (devicesList.length === 0 ||
+                !devicesList.some(device => device.path === this._devicePath)) {
+            this._addPropsToSettings(devicesList);
+        } else {
+            validateProperties(this._settings, 'nothingBuds-list', devicesList,
+                this._defaultsDeviceSettings, this._devicePath);
+        }
+
+        this._updateInitialValues();
+        this._monitorNothingBudsListGsettings(true);
+        this._updateIcons();
+        this._updateAncConfig();
+    }
+
+    _createDefaultSettings() {
+        this._defaultsDeviceSettings = {
+            path: this._devicePath,
+            modelid: this._modelData.modelId,
+            alias: this._alias,
+            icon: this._commonIcon,
+
+            ...this._modelData.batteryCase && {
+                'case': this._caseIcon,
+            },
+
+            ...this._modelData.eqPreset && {
+                'eq-preset': this._modelData.eqListeningModeType ? this._modelData.eqPreset.dirac
+                    : this._modelData.eqPreset.balanced,
+            },
+
+            ...this._modelData.eqPreset?.custom !== undefined && {
+                'eq-custom': [0, 0, 0],
+            },
+
+            ...this._modelData.bassEnhanceLevel && {
+                'bass-enable': false,
+                'bass-level': 1,
+            },
+
+            ...this._modelData.lowLatencyMode && {
+                'lowlatency': false,
+            },
+
+            ...this._modelData.inEarDetection && {
+                'inear-enable': false,
+            },
+
+            ...this._modelData.gestureOptions && {
+                'gestures': this._createDefaultGestures(),
+            },
+        };
+    }
+
+    _addPropsToSettings(devicesList) {
+        devicesList.push(this._defaultsDeviceSettings);
+        this._settings.set_strv('nothingBuds-list', devicesList.map(JSON.stringify));
+    }
+
+    _updateInitialValues() {
+        const devicesList = this._settings.get_strv('nothingBuds-list').map(JSON.parse);
+        const existingPathIndex = devicesList.findIndex(item => item.path === this._devicePath);
+        if (existingPathIndex === -1)
+            return;
+
+        this._settingsItems = devicesList[existingPathIndex];
+
+        this._commonIcon = this._settingsItems['icon'];
+
+        if (this._modelData.batteryCase)
+            this._caseIcon = this._settingsItems['case'];
+
+        if (this._modelData.eqPreset)
+            this._eqPreset = this._settingsItems['eq-preset'];
+
+        if (this._modelData.eqPreset?.custom !== undefined)
+            this._customEq = this._settingsItems['eq-custom'];
+
+        if (this._modelData.bassEnhanceLevel) {
+            this._bassEnabled = this._settingsItems['bass-enable'];
+            this._bassLevel = this._settingsItems['bass-level'];
+        }
+
+        if (this._modelData.lowLatencyMode)
+            this._lowlatency = this._settingsItems['lowlatency'];
+
+
+        if (this._modelData.inEarDetection)
+            this._inEar = this._settingsItems['inear-enable'];
+
+        if (this._modelData.gestureOptions)
+            this._gestures = this._settingsItems['gestures'];
+    }
+
+    _updateGsettingsProps() {
+        const devicesList = this._settings.get_strv('nothingBuds-list').map(JSON.parse);
+        const existingPathIndex = devicesList.findIndex(item => item.path === this._devicePath);
+        if (existingPathIndex === -1)
+            return;
+
+        this._settingsItems = devicesList[existingPathIndex];
+
+        const icon = this._settingsItems['icon'];
+        if (this._commonIcon !== icon) {
+            this._commonIcon = icon;
+            this._updateIcons();
+        }
+
+        if (this._modelData.batteryCase) {
+            const caseIcon = this._settingsItems['case'];
+            if (this._caseIcon !== caseIcon) {
+                this._caseIcon = caseIcon;
+                this._updateIcons();
+            }
+        }
+
+        if (this._modelData.eqPreset) {
+            const eqPreset = this._settingsItems['eq-preset'];
+            if (this._eqPreset !== eqPreset) {
+                this._eqPreset = eqPreset;
+                this._setEqPreset(eqPreset);
+            }
+        }
+
+        if (this._modelData.eqPreset?.custom !== undefined) {
+            const eqCustom = this._settingsItems['eq-custom'];
+
+            if (!this._customEq || eqCustom.some((v, i) => v !== this._customEq[i])) {
+                this._customEq = eqCustom;
+                this._setCustomEq(eqCustom);
+            }
+        }
+
+        if (this._modelData.bassEnhanceLevel) {
+            const bassEnabled = this._settingsItems['bass-enable'];
+            const bassLevel = this._settingsItems['bass-level'];
+
+            if (this._bassEnabled !== bassEnabled || this._bassLevel !== bassLevel) {
+                this._bassEnabled = bassEnabled;
+                this._bassLevel = bassLevel;
+                this._setEnhancedBass(bassEnabled, bassLevel);
+            }
+        }
+
+        if (this._modelData.lowLatencyMode) {
+            const enable = this._settingsItems['lowlatency'];
+
+            if (this._lowlatency !== enable) {
+                this._lowlatency = enable;
+                this._setLatency(enable);
+            }
+        }
+
+        if (this._modelData.inEarDetection) {
+            const enable = this._settingsItems['inear-enable'];
+
+            if (this._inEar !== enable) {
+                this._inEar = enable;
+                this._setInEar(enable);
+            }
+        }
+
+        if (this._modelData.gestureOptions) {
+            const newGestures = this._settingsItems['gestures'];
+
+            if (!this._gestureSlotsEqual(this._gestures, newGestures)) {
+                const oldGestures = this._gestures;
+                this._gestures = newGestures;
+
+                const diff = this._findGestureDiff(newGestures, oldGestures);
+                if (diff)
+                    this._setGesture(diff);
+            }
+        }
+    }
+
+    _monitorNothingBudsListGsettings(monitor) {
+        if (monitor) {
+            this._settings?.connectObject('changed::nothingBuds-list', () =>
+                this._updateGsettingsProps(), this);
+        } else {
+            this._settings?.disconnectObject(this);
+        }
+    }
+
+    _updateGsettings() {
+        this._monitorNothingBudsListGsettings(false);
+
+        const currentList = this._settings.get_strv('nothingBuds-list').map(JSON.parse);
+        const index = currentList.findIndex(d => d.path === this._devicePath);
+
+        if (index !== -1) {
+            currentList[index] = this._settingsItems;
+            this._settings.set_strv('nothingBuds-list', currentList.map(JSON.stringify));
+        }
+
+        this._monitorNothingBudsListGsettings(true);
+    }
+
+    _updateIcons() {
+        this._config.commonIcon = this._commonIcon;
+        this._config.albumArtIcon = this._commonIcon;
+
+        this._config.battery1ShowOnDisconnect = true;
+        if (this._modelData.batteryLR) {
+            this._config.battery1Icon = `${this._commonIcon}-left`;
+            this._config.battery2Icon = `${this._commonIcon}-right`;
+            this._config.battery2ShowOnDisconnect = true;
+            this._config.battery3Icon = this._caseIcon;
+        } else {
+            this._config.battery1Icon = this._commonIcon;
+        }
+
+        this.dataHandler?.setConfig(this._config);
+    }
+
+    _updateAncConfig() {
+        const nc = this._modelData.noiseControl;
+        if (!nc)
+            return;
+
+        this._config.toggle1Title = _('Noise Control');
+
+        let buttonIndex = 1;
+
+        if (nc.off) {
+            this._config[`toggle1Button${buttonIndex}Icon`] = 'bbm-anc-off-symbolic.svg';
+            this._config[`toggle1Button${buttonIndex}Name`] = _('Off');
+            buttonIndex++;
+        }
+
+        if (nc.transparency) {
+            this._config[`toggle1Button${buttonIndex}Icon`] = 'bbm-transperancy-symbolic.svg';
+            this._config[`toggle1Button${buttonIndex}Name`] = _('Transparency');
+            buttonIndex++;
+        }
+
+        if (nc.noiseCancellation) {
+            this._config[`toggle1Button${buttonIndex}Icon`] = 'bbm-anc-on-symbolic.svg';
+            this._config[`toggle1Button${buttonIndex}Name`] = _('Noise Cancellation');
+            buttonIndex++;
+        }
+
+        const levelsObj = nc.noiseCancellation?.levels;
+        const personalizeAnc = this._modelData.personalizeAnc;
+
+        this._config.optionsBox1 = [];
+
+        if (levelsObj)
+            this._config.optionsBox1.push('radio-button');
+
+        if (personalizeAnc)
+            this._config.optionsBox1.push('check-button');
+
+        if (levelsObj) {
+            const levelOrder = ['high', 'mid', 'low', 'adaptive'];
+
+            this._config.box1RadioTitle = _('Noise Cancellation Level');
+
+            const levelNames = {
+                high: _('High'),
+                mid: _('Mid'),
+                low: _('Low'),
+                adaptive: _('Adaptive'),
+            };
+
+            this._config.box1RadioButton = levelOrder
+            .filter(level => level in levelsObj)
+            .map(level => levelNames[level]);
+        }
+
+        if (personalizeAnc)
+            this._config.box1CheckButton = [_('Personalised ANC')];
+    }
+
+
+    _startConfiguration(battInfo) {
+        const bat1level = battInfo.battery1Level  ?? 0;
+        const bat2level = battInfo.battery2Level  ?? 0;
+        const bat3level = battInfo.battery3Level  ?? 0;
+
+        if (bat1level <= 0 && bat2level <= 0 && bat3level <= 0)
+            return;
+
+        this._battInfoRecieved = true;
+
+        if (this._modelData.noiseControl)
+            this._props.toggle1Visible = true;
+
+        this.dataHandler = new DataHandler(this._config, this._props);
+
+        this.updateDeviceMapCb(this._devicePath, this.dataHandler);
+
+        this.dataHandler.connectObject(
+            'ui-action', (o, command, value) => {
+                if (command === 'toggle1State')
+                    this._toggle1ButtonClicked(value);
+
+                if (command === 'box1CheckButton1State')
+                    this._box1CheckButton1StateChanged(value);
+
+                if (command === 'box1RadioButtonState')
+                    this._box1RadioButtonStateChanged(value);
+
+                if (command === 'settingsButtonClicked')
+                    this._settingsButtonClicked();
+            },
+            this
+        );
+    }
+
+    updateFirmwareInfo(info) {
+        this._log.info(`Firmware:${info}`);
+    }
+
+    updateBatteryProps(props) {
+        this._props = {...this._props, ...props};
+
+        if (!this._modelData.batteryLR)
+            this._props.computedBatteryLevel = props.battery1Level;
+        else
+            this._props.computedBatteryLevel = buds2to1BatteryLevel(props);
+
+        if (!this._battInfoRecieved)
+            this._startConfiguration(props);
+
+        this.dataHandler?.setProps(this._props);
+    }
+
+    updateNoiseControl(mode) {
+        const nc = this._modelData.noiseControl;
+
+        let toggleIndex = 0;
+        let isNcMode = false;
+
+        if (nc.off && mode === nc.off.byte) {
+            toggleIndex = 1;
+            isNcMode = false;
+        } else if (nc.transparency && mode === nc.transparency.byte) {
+            toggleIndex = 2;
+            isNcMode = false;
+        } else if (nc.noiseCancellation && mode === nc.noiseCancellation.byte) {
+            toggleIndex = nc.transparency ? 3 : 2;
+            isNcMode = true;
+        } else if (nc.noiseCancellation?.levels) {
+            const levelsObj = nc.noiseCancellation.levels;
+            const levelOrder = ['high', 'mid', 'low', 'adaptive'];
+            const levelIndex = levelOrder.findIndex(level => levelsObj[level] === mode);
+
+            if (levelIndex >= 0) {
+                toggleIndex = nc.transparency ? 3 : 2;
+                isNcMode = true;
+                this._props.box1RadioButtonState = levelIndex + 1;
+            }
+        }
+
+        this._props.toggle1State = toggleIndex;
+
+        if (isNcMode && (nc.noiseCancellation?.levels || this._modelData.personalizeAnc))
+            this._props.optionsBoxVisible = 1;
+        else
+            this._props.optionsBoxVisible = 0;
+
+
+        this.dataHandler?.setProps(this._props);
+    }
+
+    _toggle1ButtonClicked(index) {
+        const nc = this._modelData.noiseControl;
+        if (!nc)
+            return;
+
+        let ancMode = null;
+        const buttonOrder = [];
+
+        this._props.toggle1State = index;
+
+        if (nc.off)
+            buttonOrder.push({type: 'off', byte: nc.off.byte});
+
+        if (nc.transparency)
+            buttonOrder.push({type: 'transparency', byte: nc.transparency.byte});
+
+        if (nc.noiseCancellation)
+            buttonOrder.push({type: 'noiseCancellation', byte: nc.noiseCancellation.byte ?? null});
+
+        if (index > 0 && index <= buttonOrder.length) {
+            const btn = buttonOrder[index - 1];
+            this._props.optionsBoxVisible = btn.type === 'noiseCancellation' ? 1 : 0;
+            this._props.toggle1State = index;
+            this.dataHandler?.setProps(this._props);
+
+            if (btn.type === 'noiseCancellation' && nc.noiseCancellation?.levels) {
+                const levelsObj = nc.noiseCancellation.levels;
+                const levelOrder = ['high', 'mid', 'low', 'adaptive'];
+                const firstLevel = levelOrder.find(lvl => lvl in levelsObj);
+                ancMode = levelsObj[firstLevel];
+            } else {
+                ancMode = btn.byte;
+            }
+        }
+
+        if (ancMode !== null)
+            this._nothingBudsSocket?.setNoiseControl(ancMode);
+    }
+
+    _box1RadioButtonStateChanged(index) {
+        const nc = this._modelData.noiseControl;
+        if (!nc || !nc.noiseCancellation?.levels)
+            return;
+
+        const levelsObj = nc.noiseCancellation.levels;
+        const levelOrder = ['high', 'mid', 'low', 'adaptive'];
+
+        if (index > 0 && index <= levelOrder.length) {
+            const level = levelOrder[index - 1];
+            if (level in levelsObj) {
+                const ancMode = levelsObj[level];
+                this._nothingBudsSocket?.setNoiseControl(ancMode);
+            }
+        }
+    }
+
+    _box1CheckButton1StateChanged(state) {
+        if (!this._modelData.personalizeAnc)
+            return;
+
+        this._nothingBudsSocket?.setPersonalizedAnc(state);
+    }
+
+    updatePersonalizedAnc(state) {
+        this._props.box1CheckButton1State = state;
+        this.dataHandler?.setProps(this._props);
+    }
+
+    updateEqPreset(mode) {
+        this._eqPreset = mode;
+
+        if (this._settingsItems) {
+            this._settingsItems['eq-preset'] = mode;
+            this._updateGsettings();
+        }
+    }
+
+    _setEqPreset(mode) {
+        if (!this._modelData.eqPreset)
+            return;
+
+        this._nothingBudsSocket?.setEqPreset(mode);
+    }
+
+    updateCustomEq(eqArray) {
+        this._customEq = eqArray;
+
+        if (this._settingsItems) {
+            this._settingsItems['eq-custom'] = eqArray;
+            this._updateGsettings();
+        }
+    }
+
+    _setCustomEq(eqArray) {
+        this._nothingBudsSocket?.setCustomEq(eqArray);
+    }
+
+    updateEnhancedBass(enable, level) {
+        this._bassEnabled = enable;
+        this._bassLevel = level;
+
+        if (this._settingsItems) {
+            this._settingsItems['bass-enable'] = enable;
+            this._settingsItems['bass-level'] = level;
+            this._updateGsettings();
+        }
+    }
+
+    _setEnhancedBass(enable, level) {
+        this._nothingBudsSocket?.setEnhancedBass(enable, level);
+    }
+
+    updateLatency(enable) {
+        this._lowlatency = enable;
+
+        if (this._settingsItems) {
+            this._settingsItems['lowlatency'] = enable;
+            this._updateGsettings();
+        }
+    }
+
+    _setLatency(enable) {
+        this._nothingBudsSocket?.setLatency(enable);
+    }
+
+    updateInEar(enable) {
+        this._inEar = enable;
+
+        if (this._settingsItems) {
+            this._settingsItems['inear-enable'] = enable;
+            this._updateGsettings();
+        }
+    }
+
+    _setInEar(enable) {
+        this._nothingBudsSocket?.setInEar(enable);
+    }
+
+    _createDefaultGestures() {
+        const opts = this._modelData.gestureOptions;
+        if (!opts)
+            return [];
+
+        const slots = [];
+        const devices = Object.values(opts.device);
+        const {gestureTypes} = opts.mapping;
+        const {actions: actionMap} = opts.mapping;
+
+        for (const [gestureKey, gestureDef] of Object.entries(opts.gestures)) {
+            const typeByte = gestureTypes[gestureKey];
+            if (typeByte === undefined)
+                continue;
+
+            const actionKey = gestureDef.actions?.[0];
+            if (!actionKey)
+                continue;
+
+            const actionByte = actionMap[actionKey]?.[0];
+            if (actionByte === undefined)
+                continue;
+
+            for (const deviceByte of devices) {
+                slots.push({
+                    device: deviceByte,
+                    type: typeByte,
+                    action: actionByte,
+                });
+            }
+        }
+
+        return slots;
+    }
+
+
+    _isValidGestureSlot(slot) {
+        const opts = this._modelData.gestureOptions;
+        if (!opts)
+            return false;
+
+        const {device, mapping, gestures} = opts;
+
+        const deviceValid = Object.values(device).includes(slot.device);
+        if (!deviceValid) {
+            this._log.info(`Unsupported gesture device byte: ${slot.device}`);
+            return false;
+        }
+
+        const gestureKey = Object.entries(mapping.gestureTypes)
+        .find(([, v]) => v === slot.type)?.[0];
+
+        if (!gestureKey || !gestures[gestureKey]) {
+            this._log.info(`Unsupported gesture type byte: ${slot.type}`);
+            return false;
+        }
+
+        const actionKey = Object.entries(mapping.actions)
+        .find(([, values]) => values.includes(slot.action))?.[0];
+
+        if (!actionKey) {
+            this._log.info(`Unsupported action byte: ${slot.action}`);
+            return false;
+        }
+
+        if (!gestures[gestureKey].actions.includes(actionKey)) {
+            this._log.info(
+                `Action '${actionKey}' not allowed for gesture '${gestureKey}'`
+            );
+            return false;
+        }
+
+        return true;
+    }
+
+    _gestureSlotsEqual(a = [], b = []) {
+        if (a.length !== b.length)
+            return false;
+        return a.every((s, i) =>
+            s.device === b[i].device &&
+        s.type === b[i].type &&
+        s.action === b[i].action
+        );
+    }
+
+    _findGestureDiff(newSlots, oldSlots) {
+        for (let i = 0; i < newSlots.length; i++) {
+            const old = oldSlots[i];
+            const cur = newSlots[i];
+
+            if (!old || old.device !== cur.device || old.type !== cur.type ||
+                    old.action !== cur.action)
+                return cur;
+        }
+        return null;
+    }
+
+    updateGestures(slots) {
+        const validSlots = [];
+
+        for (const slot of slots) {
+            if (this._isValidGestureSlot(slot))
+                validSlots.push(slot);
+        }
+
+        this._gestures = validSlots;
+
+        if (this._settingsItems) {
+            this._settingsItems['gestures'] = validSlots;
+            this._updateGsettings();
+        }
+    }
+
+    _setGesture(slot) {
+        this._nothingBudsSocket?.setGesture(slot);
+    }
+
+    _settingsButtonClicked() {
+        this._configureWindowLauncherCancellable = new Gio.Cancellable();
+        launchConfigureWindow(this._devicePath, 'nothingBuds', this._extPath,
+            this._configureWindowLauncherCancellable);
+        this._configureWindowLauncherCancellable = null;
+    }
+
+    destroy() {
+        this._configureWindowLauncherCancellable?.cancel();
+        this._configureWindowLauncherCancellable = null;
+
+        this._nothingBudsSocket?.destroy();
+        this._nothingBudsSocket = null;
+        this._bluezDeviceProxy = null;
+        this.dataHandler?.disconnectObject(this);
+        this.dataHandler = null;
+        this._settings?.disconnectObject(this);
+        this._battInfoRecieved = false;
+    }
+});
+

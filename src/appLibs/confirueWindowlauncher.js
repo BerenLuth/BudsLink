@@ -1,6 +1,7 @@
 import * as Airpods from '../preferences/devices/airpods/configureWindow.js';
 import * as Sony from '../preferences/devices/sony/configureWindow.js';
 import * as GalaxyBuds from '../preferences/devices/galaxyBuds/configureWindow.js';
+import * as NothingBuds from '../preferences/devices/nothingBuds/configureWindow.js';
 
 let _settings = null;
 let _gettext = null;
@@ -39,6 +40,10 @@ export function createConfigureWindow({
         case 'galaxyBuds':
             Prefs = GalaxyBuds;
             schemaKey = 'galaxy-buds-list';
+            break;
+        case 'nothingBuds':
+            Prefs = NothingBuds;
+            schemaKey = 'nothingBuds-list';
             break;
         default:
             return null;

@@ -9,5 +9,7 @@ export const supportedAudioDualIcons = [
     'earbuds-stem2', 'earbuds-stem3', 'earbuds-bean',
 ];
 
-export const supportedCaseIcons = ['case-normal', 'case-narrow', 'case-oval', 'case-oval-short'];
+export const supportedCaseIcons = [
+    'case-normal', 'case-narrow', 'case-oval', 'case-oval-short', 'case-round', 'case-square',
+];
 

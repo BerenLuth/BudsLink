@@ -12,7 +12,7 @@ import {
     GalaxyBudsAnc,
     GalaxyBudsEarDetectionState,
     GalaxyBudsLegacyEarDetectionState,
-    EqPresets,
+    EqPresets
 } from './galaxyBudsConfig.js';
 
 const AndroidSdkVersion = 34;

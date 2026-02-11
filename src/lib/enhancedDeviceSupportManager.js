@@ -10,6 +10,9 @@ import {
 import {
     GalaxyBudsDevice, isGalaxyLegacy, isGalaxyBuds, DeviceTypeGalaxyLegacy, DeviceTypeGalaxyBuds
 } from './devices/galaxyBuds/galaxyBudsDevice.js';
+import {
+    NothingBudsDevice, isNothingBuds, DeviceTypeNothingBuds
+} from './devices/nothingBuds/nothingBudsDevice.js';
 
 export const EnhancedDeviceSupportManager = GObject.registerClass({
     GTypeName: 'BudsLink_EnhancedDeviceSupportManager',
@@ -79,6 +82,11 @@ export const EnhancedDeviceSupportManager = GObject.registerClass({
                     enabled: this._toggle.galaxyBudsEnabled,
                     check: isGalaxyBuds,
                     type: DeviceTypeGalaxyBuds,
+                },
+                {
+                    enabled: this._toggle.nothingBudsEnabled,
+                    check: isNothingBuds,
+                    type: DeviceTypeNothingBuds,
                 },
             ];
             /* ------------------------------------- */
@@ -157,6 +165,11 @@ export const EnhancedDeviceSupportManager = GObject.registerClass({
                         deviceProps.type === DeviceTypeGalaxyLegacy) {
                     deviceProps.enhancedDevice =
                         new GalaxyBudsDevice(this._settings, path, deviceProps.alias,
+                            this._extPath, this._profileManager,
+                            this.updateDeviceMapCb.bind(this));
+                } else if (deviceProps.type === DeviceTypeNothingBuds) {
+                    deviceProps.enhancedDevice =
+                        new NothingBudsDevice(this._settings, path, deviceProps.alias,
                             this._extPath, this._profileManager,
                             this.updateDeviceMapCb.bind(this));
                 }

@@ -121,6 +121,7 @@ export const BudsLinkApplication = GObject.registerClass({
         this.airpodsEnabled = true;
         this.sonyEnabled = true;
         this.galaxyBudsEnabled = true;
+        this.nothingBudsEnabled = true;
 
         const iconsPath = GLib.build_filenamev([AppDir, 'icons']);
         const iconTheme = Gtk.IconTheme.get_for_display(this._window.get_display());
