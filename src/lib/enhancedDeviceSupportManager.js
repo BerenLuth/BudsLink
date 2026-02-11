@@ -7,6 +7,9 @@ import {AirpodsDevice, isAirpods, DeviceTypeAirpods} from './devices/airpods/air
 import {
     SonyDevice, isSonyV1, isSonyV2, DeviceTypeSonyV1, DeviceTypeSonyV2
 } from './devices/sony/sonyDevice.js';
+import {
+    GalaxyBudsDevice, isGalaxyLegacy, isGalaxyBuds, DeviceTypeGalaxyLegacy, DeviceTypeGalaxyBuds
+} from './devices/galaxyBuds/galaxyBudsDevice.js';
 
 export const EnhancedDeviceSupportManager = GObject.registerClass({
     GTypeName: 'BudsLink_EnhancedDeviceSupportManager',
@@ -66,6 +69,16 @@ export const EnhancedDeviceSupportManager = GObject.registerClass({
                     enabled: this._toggle.sonyEnabled,
                     check: isSonyV2,
                     type: DeviceTypeSonyV2,
+                },
+                {
+                    enabled: this._toggle.galaxyBudsEnabled,
+                    check: isGalaxyLegacy,
+                    type: DeviceTypeGalaxyLegacy,
+                },
+                {
+                    enabled: this._toggle.galaxyBudsEnabled,
+                    check: isGalaxyBuds,
+                    type: DeviceTypeGalaxyBuds,
                 },
             ];
             /* ------------------------------------- */
@@ -140,6 +153,12 @@ export const EnhancedDeviceSupportManager = GObject.registerClass({
                     deviceProps.enhancedDevice =
                         new SonyDevice(this._settings, path, deviceProps.alias, this._extPath,
                             this._profileManager, this.updateDeviceMapCb.bind(this));
+                } else if (deviceProps.type === DeviceTypeGalaxyBuds ||
+                        deviceProps.type === DeviceTypeGalaxyLegacy) {
+                    deviceProps.enhancedDevice =
+                        new GalaxyBudsDevice(this._settings, path, deviceProps.alias,
+                            this._extPath, this._profileManager,
+                            this.updateDeviceMapCb.bind(this));
                 }
                 /* ------------------------------------- */
             } else if (!deviceProps.connected && deviceProps.enhancedDevice) {
