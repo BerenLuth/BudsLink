@@ -26,7 +26,7 @@ export const CheckButtonBin = GObject.registerClass({
             const box = new Gtk.Box({
                 orientation: Gtk.Orientation.VERTICAL,
                 spacing: 6,
-                margin_top: 8,
+                margin_top: 10,
                 hexpand: true,
                 halign: Gtk.Align.CENTER,
             });
@@ -34,7 +34,6 @@ export const CheckButtonBin = GObject.registerClass({
             const checkTitle = new Gtk.Label({
                 halign: Gtk.Align.CENTER,
                 label,
-                margin_top: 8,
                 css_classes: ['heading'],
             });
 

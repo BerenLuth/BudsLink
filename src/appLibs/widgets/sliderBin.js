@@ -11,7 +11,7 @@ export const SliderBin = GObject.registerClass({
             orientation: Gtk.Orientation.VERTICAL,
             spacing: 6,
             hexpand: true,
-            margin_top: 8,
+            margin_top: 10,
         });
 
         this._dataHandler = dataHandler;

@@ -2,6 +2,7 @@
 
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
+import Pango from 'gi://Pango';
 
 export const RadioButtonBin = GObject.registerClass({
     GTypeName: 'BudsLink_RadioButtonBin',
@@ -11,7 +12,7 @@ export const RadioButtonBin = GObject.registerClass({
             orientation: Gtk.Orientation.VERTICAL,
             spacing: 8,
             hexpand: true,
-            margin_top: 8,
+            margin_top: 10,
             halign: Gtk.Align.CENTER,
         });
 
@@ -33,7 +34,7 @@ export const RadioButtonBin = GObject.registerClass({
 
         const row = new Gtk.Box({
             orientation: Gtk.Orientation.HORIZONTAL,
-            spacing: 12,
+            spacing: 4,
             hexpand: true,
             homogeneous: true,
             halign: Gtk.Align.CENTER,
@@ -47,21 +48,24 @@ export const RadioButtonBin = GObject.registerClass({
 
             const vbox = new Gtk.Box({
                 orientation: Gtk.Orientation.VERTICAL,
-                spacing: 6,
+                spacing: 8,
                 hexpand: true,
+                halign: Gtk.Align.CENTER,
+            });
+
+            const button = new Gtk.CheckButton({
+                margin_top: 4,
+                group,
                 halign: Gtk.Align.CENTER,
             });
 
             const radioLabel = new Gtk.Label({
                 halign: Gtk.Align.CENTER,
                 label,
+                ellipsize: Pango.EllipsizeMode.END,
+                css_classes: ['caption-heading'],
             });
-            radioLabel.set_size_request(80, -1);
-
-            const button = new Gtk.CheckButton({
-                group,
-                halign: Gtk.Align.CENTER,
-            });
+            radioLabel.set_size_request(72, -1);
 
             vbox.append(button);
             vbox.append(radioLabel);
