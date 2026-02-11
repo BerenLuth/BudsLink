@@ -28,7 +28,7 @@
 		<file>preferences/widgets/iconSelectorWidget.js</file>
 		<file>preferences/widgets/dropDownRowWidget.js</file>
 		<file>preferences/widgets/sliderRowWidget.js</file>
-		<file>preferences/widgets/checkBoxesGroupWidget.js</file>
+		<file>preferences/widgets/checkBoxesRowWidget.js</file>
 		<file>lib/bluezDeviceProxy.js</file>
 		<file>lib/dataHandler.js</file>
 		<file>lib/devices/logger.js</file>
