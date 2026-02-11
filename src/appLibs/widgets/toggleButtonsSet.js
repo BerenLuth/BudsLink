@@ -2,6 +2,7 @@
 
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
+import Adw from 'gi://Adw';
 
 export const ToggleButtonsSet = GObject.registerClass({
     GTypeName: 'BudsLink_ToggleButtonsSet',
@@ -10,7 +11,6 @@ export const ToggleButtonsSet = GObject.registerClass({
         super._init({
             orientation: Gtk.Orientation.VERTICAL,
             spacing: 6,
-            hexpand: false,
             margin_top: 8,
             margin_bottom: 8,
             margin_start: 8,
@@ -19,6 +19,10 @@ export const ToggleButtonsSet = GObject.registerClass({
 
         this._isSecondSet = isSecondSet;
         this._dataHandler = dataHandler;
+
+        this._group = null;
+        this._titleLabel = null;
+
         this._buildUI();
         this._syncFromProps();
 
@@ -37,97 +41,89 @@ export const ToggleButtonsSet = GObject.registerClass({
         while ((child = this.get_first_child()))
             this.remove(child);
 
-        this._icons = [];
-        this._names = [];
-        this._buttons = [];
-        this._title = null;
+        this._group = null;
+        this._titleLabel = null;
 
         const config = this._dataHandler.getConfig();
 
-        this._title = this._isSecondSet ? config.toggle2Title : config.toggle1Title;
+        const title = this._isSecondSet ? config.toggle2Title : config.toggle1Title;
 
-        this._icons = [
+        const icons = [
             this._isSecondSet ? config.toggle2Button1Icon : config.toggle1Button1Icon,
             this._isSecondSet ? config.toggle2Button2Icon : config.toggle1Button2Icon,
             this._isSecondSet ? config.toggle2Button3Icon : config.toggle1Button3Icon,
             this._isSecondSet ? config.toggle2Button4Icon : config.toggle1Button4Icon,
         ];
 
-        this._names = [
+        const names = [
             this._isSecondSet ? config.toggle2Button1Name : config.toggle1Button1Name,
             this._isSecondSet ? config.toggle2Button2Name : config.toggle1Button2Name,
             this._isSecondSet ? config.toggle2Button3Name : config.toggle1Button3Name,
             this._isSecondSet ? config.toggle2Button4Name : config.toggle1Button4Name,
         ];
 
-
-        if (this._title) {
-            const label = new Gtk.Label({
-                label: this._title,
+        if (title) {
+            this._titleLabel = new Gtk.Label({
+                label: title,
                 halign: Gtk.Align.CENTER,
                 css_classes: ['heading'],
             });
-            this.append(label);
+            this.append(this._titleLabel);
         }
 
-        this._buttonBox = new Gtk.Box({
+        this._group = new Adw.ToggleGroup({
             orientation: Gtk.Orientation.HORIZONTAL,
-            homogeneous: true,
-            spacing: 0,
-            hexpand: false,
             halign: Gtk.Align.CENTER,
+            css_classes: ['budslink-toggle-group'],
         });
 
-        this._buttonBox.add_css_class('linked');
-        this.append(this._buttonBox);
+        this.append(this._group);
 
-        this._icons.forEach((iconName, index) => {
+        icons.forEach((iconName, index) => {
             if (!iconName)
                 return;
 
-            const image = new Gtk.Image({
+            const toggle = new Adw.Toggle({
                 icon_name: iconName.replace(/\.svg$/, ''),
+                tooltip: names[index] || '',
+                name: String(index + 1),
             });
 
-            const button = new Gtk.Button({
-                hexpand: true,
-                tooltip_text: this._names[index] || '',
-                child: image,
-            });
+            this._group.add(toggle);
+        });
 
-            button.set_size_request(64, -1);
+        this._groupNotifyId =
+            this._group.connect('notify::active', () => {
+                const active = this._group.active;
+                if (active < 0)
+                    return;
 
-            const sigId = button.connect('clicked', () => {
-                const buttonNumber = index + 1;
                 const stateProp = this._isSecondSet ? 'toggle2State' : 'toggle1State';
 
-                this._dataHandler.emitUIAction(stateProp, buttonNumber);
+                this._dataHandler.emitUIAction(stateProp, active + 1);
             });
-
-            this._buttons.push({button, sigId});
-            this._buttonBox.append(button);
-        });
     }
 
     _syncFromProps() {
+        if (!this._group)
+            return;
+
         const props = this._dataHandler.getProps();
         const index = this._isSecondSet ? props.toggle2State : props.toggle1State;
 
-        for (let i = 0; i < this._buttons.length; i++) {
-            const {button} = this._buttons[i];
-
-            if (index > 0 && i === index - 1)
-                button.add_css_class('selected');
-            else
-                button.remove_css_class('selected');
+        if (index > 0) {
+            const desired = index - 1;
+            if (this._group.active !== desired)
+                this._group.active = desired;
         }
     }
 
     destroy() {
-        for (const {button, sigId} of this._buttons)
-            button.disconnect(sigId);
+        if (this._group && this._groupNotifyId)
+            this._group.disconnect(this._groupNotifyId);
 
-        this._buttons = [];
+        if (this._group)
+            this._group.remove_all();
 
         if (this._dataHandler && this._dataHandlerIdConfig)
             this._dataHandler.disconnect(this._dataHandlerIdConfig);
@@ -135,6 +131,7 @@ export const ToggleButtonsSet = GObject.registerClass({
         if (this._dataHandler && this._dataHandlerIdProp)
             this._dataHandler.disconnect(this._dataHandlerIdProp);
 
+        this._groupNotifyId = null;
         this._dataHandlerIdConfig = null;
         this._dataHandlerIdProp = null;
         this._dataHandler = null;
