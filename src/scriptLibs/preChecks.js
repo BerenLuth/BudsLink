@@ -9,8 +9,8 @@ function checkGtkVersion() {
     const major = Gtk.get_major_version();
     const minor = Gtk.get_minor_version();
 
-    if (major < 4 || major === 4 && minor < 14) {
-        printerr(`Unsupported GTK version ${major}.${minor}. GTK >= 4.14 required.`);
+    if (major < 4 || major === 4 && minor < 17) {
+        printerr(`Unsupported GTK version ${major}.${minor}. GTK >= 4.17 required.`);
         return false;
     }
     return true;
@@ -20,8 +20,8 @@ function checkAdwVersion() {
     const major = Adw.get_major_version();
     const minor = Adw.get_minor_version();
 
-    if (major < 1 || major === 1 && minor < 5) {
-        printerr(`Unsupported Libadwaita version ${major}.${minor}. Libadwaita >= 1.5 required.`);
+    if (major < 1 || major === 1 && minor < 7) {
+        printerr(`Unsupported Libadwaita version ${major}.${minor}. Libadwaita >= 1.7 required.`);
         return false;
     }
     return true;
