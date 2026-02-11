@@ -16,5 +16,11 @@
         <key name="sony-list" type="as">
             <default>[]</default>
         </key>
+        <key name="galaxy-buds-list" type="as">
+            <default>[]</default>
+        </key>
+        <key name="nothingBuds-list" type="as">
+            <default>[]</default>
+        </key>
 	</schema>
 </schemalist>
