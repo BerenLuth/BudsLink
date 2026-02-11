@@ -19,9 +19,10 @@ export const ToggleButtonsSet = GObject.registerClass({
 
         this._isSecondSet = isSecondSet;
         this._dataHandler = dataHandler;
-
         this._group = null;
         this._titleLabel = null;
+        this._lastSentIndex = 0;
+        this._updatingFromProps = false;
 
         this._buildUI();
         this._syncFromProps();
@@ -37,15 +38,15 @@ export const ToggleButtonsSet = GObject.registerClass({
     }
 
     _buildUI() {
+        if (this._group && this._groupNotifyId)
+            this._group.disconnect(this._groupNotifyId);
+        this._groupNotifyId = null;
+
         let child;
         while ((child = this.get_first_child()))
             this.remove(child);
 
-        this._group = null;
-        this._titleLabel = null;
-
         const config = this._dataHandler.getConfig();
-
         const title = this._isSecondSet ? config.toggle2Title : config.toggle1Title;
 
         const icons = [
@@ -76,32 +77,35 @@ export const ToggleButtonsSet = GObject.registerClass({
             halign: Gtk.Align.CENTER,
             css_classes: ['budslink-toggle-group'],
         });
-
         this.append(this._group);
 
         icons.forEach((iconName, index) => {
             if (!iconName)
                 return;
-
             const toggle = new Adw.Toggle({
                 icon_name: iconName.replace(/\.svg$/, ''),
-                tooltip: names[index] || '',
-                name: String(index + 1),
+                tooltip: names[index],
             });
-
             this._group.add(toggle);
         });
 
-        this._groupNotifyId =
-            this._group.connect('notify::active', () => {
-                const active = this._group.active;
-                if (active < 0)
-                    return;
+        this._groupNotifyId = this._group.connect('notify::active', () => {
+            if (this._updatingFromProps)
+                return;
 
-                const stateProp = this._isSecondSet ? 'toggle2State' : 'toggle1State';
+            const active = this._group.active;
+            if (active < 0)
+                return;
 
-                this._dataHandler.emitUIAction(stateProp, active + 1);
-            });
+            const stateProp = this._isSecondSet ? 'toggle2State' : 'toggle1State';
+            const uiIndex = active + 1;
+
+            if (this._lastSentIndex === uiIndex)
+                return;
+
+            this._lastSentIndex = uiIndex;
+            this._dataHandler.emitUIAction(stateProp, uiIndex);
+        });
     }
 
     _syncFromProps() {
@@ -111,10 +115,15 @@ export const ToggleButtonsSet = GObject.registerClass({
         const props = this._dataHandler.getProps();
         const index = this._isSecondSet ? props.toggle2State : props.toggle1State;
 
-        if (index > 0) {
-            const desired = index - 1;
-            if (this._group.active !== desired)
-                this._group.active = desired;
+        if (!index)
+            return;
+
+        const desired = index - 1;
+
+        if (this._group.active !== desired) {
+            this._updatingFromProps = true;
+            this._group.active = desired;
+            this._updatingFromProps = false;
         }
     }
 
