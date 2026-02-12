@@ -43,7 +43,7 @@ export function createConfigureWindow({
             break;
         case 'nothingBuds':
             Prefs = NothingBuds;
-            schemaKey = 'nothingBuds-list';
+            schemaKey = 'nothing-buds-list';
             break;
         default:
             return null;

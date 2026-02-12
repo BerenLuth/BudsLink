@@ -75,13 +75,13 @@ export const NothingBudsDevice = GObject.registerClass({
 
         this._createDefaultSettings();
 
-        const devicesList = this._settings.get_strv('nothingBuds-list').map(JSON.parse);
+        const devicesList = this._settings.get_strv('nothing-buds-list').map(JSON.parse);
 
         if (devicesList.length === 0 ||
                 !devicesList.some(device => device.path === this._devicePath)) {
             this._addPropsToSettings(devicesList);
         } else {
-            validateProperties(this._settings, 'nothingBuds-list', devicesList,
+            validateProperties(this._settings, 'nothing-buds-list', devicesList,
                 this._defaultsDeviceSettings, this._devicePath);
         }
 
@@ -132,11 +132,11 @@ export const NothingBudsDevice = GObject.registerClass({
 
     _addPropsToSettings(devicesList) {
         devicesList.push(this._defaultsDeviceSettings);
-        this._settings.set_strv('nothingBuds-list', devicesList.map(JSON.stringify));
+        this._settings.set_strv('nothing-buds-list', devicesList.map(JSON.stringify));
     }
 
     _updateInitialValues() {
-        const devicesList = this._settings.get_strv('nothingBuds-list').map(JSON.parse);
+        const devicesList = this._settings.get_strv('nothing-buds-list').map(JSON.parse);
         const existingPathIndex = devicesList.findIndex(item => item.path === this._devicePath);
         if (existingPathIndex === -1)
             return;
@@ -171,7 +171,7 @@ export const NothingBudsDevice = GObject.registerClass({
     }
 
     _updateGsettingsProps() {
-        const devicesList = this._settings.get_strv('nothingBuds-list').map(JSON.parse);
+        const devicesList = this._settings.get_strv('nothing-buds-list').map(JSON.parse);
         const existingPathIndex = devicesList.findIndex(item => item.path === this._devicePath);
         if (existingPathIndex === -1)
             return;
@@ -254,7 +254,7 @@ export const NothingBudsDevice = GObject.registerClass({
 
     _monitorNothingBudsListGsettings(monitor) {
         if (monitor) {
-            this._settings?.connectObject('changed::nothingBuds-list', () =>
+            this._settings?.connectObject('changed::nothing-buds-list', () =>
                 this._updateGsettingsProps(), this);
         } else {
             this._settings?.disconnectObject(this);
@@ -264,12 +264,12 @@ export const NothingBudsDevice = GObject.registerClass({
     _updateGsettings() {
         this._monitorNothingBudsListGsettings(false);
 
-        const currentList = this._settings.get_strv('nothingBuds-list').map(JSON.parse);
+        const currentList = this._settings.get_strv('nothing-buds-list').map(JSON.parse);
         const index = currentList.findIndex(d => d.path === this._devicePath);
 
         if (index !== -1) {
             currentList[index] = this._settingsItems;
-            this._settings.set_strv('nothingBuds-list', currentList.map(JSON.stringify));
+            this._settings.set_strv('nothing-buds-list', currentList.map(JSON.stringify));
         }
 
         this._monitorNothingBudsListGsettings(true);

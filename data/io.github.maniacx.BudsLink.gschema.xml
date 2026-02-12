@@ -19,7 +19,7 @@
         <key name="galaxy-buds-list" type="as">
             <default>[]</default>
         </key>
-        <key name="nothingBuds-list" type="as">
+        <key name="nothing-buds-list" type="as">
             <default>[]</default>
         </key>
 	</schema>

@@ -42,7 +42,7 @@ export const ConfigureWindow = GObject.registerClass({
         this._settings = settings;
         this._devicePath = devicePath;
 
-        const pathsString = settings.get_strv('nothingBuds-list').map(JSON.parse);
+        const pathsString = settings.get_strv('nothing-buds-list').map(JSON.parse);
         this._settingsItems = pathsString.find(info => info.path === devicePath);
 
         if (!this._settingsItems)
@@ -108,8 +108,8 @@ export const ConfigureWindow = GObject.registerClass({
         this._addGestureControls(_);
 
 
-        settings.connect('changed::nothingBuds-list', () => {
-            const updatedList = settings.get_strv('nothingBuds-list').map(JSON.parse);
+        settings.connect('changed::nothing-buds-list', () => {
+            const updatedList = settings.get_strv('nothing-buds-list').map(JSON.parse);
             this._settingsItems = updatedList.find(info => info.path === devicePath);
             if (!this._settingsItems)
                 return;
@@ -138,14 +138,14 @@ export const ConfigureWindow = GObject.registerClass({
     }
 
     _updateGsettings(key, value) {
-        const pairedDevice = this._settings.get_strv('nothingBuds-list');
+        const pairedDevice = this._settings.get_strv('nothing-buds-list');
         const existingPathIndex =
                 pairedDevice.findIndex(item => JSON.parse(item).path === this._devicePath);
         if (existingPathIndex !== -1) {
             const existingItem = JSON.parse(pairedDevice[existingPathIndex]);
             existingItem[key] = value;
             pairedDevice[existingPathIndex] = JSON.stringify(existingItem);
-            this._settings.set_strv('nothingBuds-list', pairedDevice);
+            this._settings.set_strv('nothing-buds-list', pairedDevice);
         }
     }
 
