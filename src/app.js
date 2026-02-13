@@ -4,8 +4,9 @@ import Gio from 'gi://Gio';
 import Gtk from 'gi://Gtk';
 import Gdk from 'gi://Gdk';
 import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
 import GLibUnix from 'gi://GLibUnix';
-
+import {gettext as _} from 'gettext';
 
 import {registerDestroyableType, destroyAllSignals} from './appLibs/signalTracker.js';
 import {createLogger} from './lib/devices/logger.js';
@@ -13,7 +14,6 @@ import {DeviceRowNavPage} from './appLibs/widgets/deviceRow.js';
 import {SettingsButton} from './appLibs/widgets/settingsButton.js';
 import {BluetoothClient} from './appLibs/bluetoothClient.js';
 import {initConfigureWindowLauncher} from './appLibs/confirueWindowlauncher.js';
-import {Gtxt as _, AppId, AppDir, Settings, getCssPath} from './appLibs/utils.js';
 import {EnhancedDeviceSupportManager} from './lib/enhancedDeviceSupportManager.js';
 
 Gio._promisify(Gio.DBusProxy, 'new');
@@ -27,19 +27,24 @@ Gio._promisify(Gio.DataInputStream.prototype, 'read_line_async');
 const SIGINT = 2;
 const SIGTERM = 15;
 
-registerDestroyableType(Gtk.Widget);
-Adw.init();
+const AppId = pkg.name; // eslint-disable-line no-undef
+const AppDir = pkg.prefix; // eslint-disable-line no-undef
 
-class BudsLinkApp {
-    constructor() {
-        this.application = new Adw.Application({
+
+registerDestroyableType(Gtk.Widget);
+
+export const BudsLinkApplication = GObject.registerClass({
+    GTypeName: 'BudsLinkApplication',
+}, class BudsLinkApplication extends Adw.Application {
+    _init() {
+        super._init({
             application_id: AppId,
             flags: Gio.ApplicationFlags.FLAGS_NONE,
         });
 
         this._log = createLogger('Main');
 
-        this.application.connect('activate', () => {
+        this.connect('activate', () => {
             try {
                 this._onActivate();
             } catch (e) {
@@ -47,7 +52,7 @@ class BudsLinkApp {
             }
         });
 
-        this.application.connect('shutdown', () => {
+        this.connect('shutdown', () => {
             this.destroy();
         });
 
@@ -55,7 +60,7 @@ class BudsLinkApp {
             GLib.PRIORITY_DEFAULT,
             SIGTERM,
             () => {
-                this.application.quit();
+                this.quit();
                 return GLib.SOURCE_REMOVE;
             }
         );
@@ -64,16 +69,12 @@ class BudsLinkApp {
             GLib.PRIORITY_DEFAULT,
             SIGINT,
             () => {
-                this.application.quit();
+                this.quit();
                 return GLib.SOURCE_REMOVE;
             }
         );
 
         this._compDevices = new Map();
-    }
-
-    run(argv) {
-        this.application.run(argv);
     }
 
     _onActivate() {
@@ -83,14 +84,14 @@ class BudsLinkApp {
         }
 
         this._window = new Adw.ApplicationWindow({
-            application: this.application,
+            application: this,
             default_width: 350,
             default_height: 780,
         });
 
         this._window.connect('close-request', () => {
             this._log.info('window close requested');
-            this.application.quit();
+            this.quit();
             return false;
         });
 
@@ -98,10 +99,10 @@ class BudsLinkApp {
         this.airpodsEnabled = true;
         this.sonyEnabled = true;
 
-        this.settings = Settings;
+        this.settings = new Gio.Settings({schema_id: AppId}); ;
 
         const provider = new Gtk.CssProvider();
-        getCssPath(provider);
+        provider.load_from_resource('/io/github/maniacx/BudsLink/stylesheet.css');
 
         Gtk.StyleContext.add_provider_for_display(
             Gdk.Display.get_default(),
@@ -237,9 +238,5 @@ class BudsLinkApp {
 
         this._compDevices.clear();
     }
-}
-
-export function runApp(argv = []) {
-    new BudsLinkApp().run(argv);
-}
+});
 

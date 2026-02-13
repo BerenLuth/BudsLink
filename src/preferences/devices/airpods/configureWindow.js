@@ -420,6 +420,5 @@ export const  ConfigureWindow = GObject.registerClass({
             this._settings.set_strv('airpods-list', pairedDevice);
         }
     }
-}
-);
+});
 

@@ -6,7 +6,6 @@
 		<file>main.js</file>
 		<file>appLibs/pactlSubscriber.js</file>
 		<file>appLibs/signalTracker.js</file>
-		<file>appLibs/utils.js</file>
 		<file>appLibs/confirueWindowlauncher.js</file>
 		<file>appLibs/bluetoothClient.js</file>
 		<file>appLibs/widgets/checkButtonBin.js</file>

@@ -4,9 +4,9 @@ import Gtk from 'gi://Gtk';
 import GObject from 'gi://GObject';
 import Adw from 'gi://Adw';
 import Gdk from 'gi://Gdk';
+import {gettext as _} from 'gettext';
 
 import {openLogWindow} from './logWindow.js';
-import {Gtxt as _, createAboutDialog} from '../utils.js';
 
 const MODE_KEY = 'dark-mode';
 const ACCENT_KEY = 'accent-color';
@@ -96,7 +96,11 @@ class SettingsButton extends Gtk.MenuButton {
                 false,
                 () => {
                     const parent = this.get_root();
-                    const aboutDialog = createAboutDialog();
+
+                    const aboutDialog = Adw.AboutDialog.new_from_appdata(
+                        '/io/github/maniacx/BudsLink/io.github.maniacx.BudsLink.metainfo.xml',
+                        pkg.version    // eslint-disable-line no-undef
+                    );
                     aboutDialog.set_application_icon('io.github.maniacx.BudsLink');
                     aboutDialog.developers = ['maniacx@github.com'];
                     aboutDialog.copyright = _('Copyright © 2026 maniacx@github.com');

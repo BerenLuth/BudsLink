@@ -2,12 +2,12 @@
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 import Adw from 'gi://Adw';
+import {gettext as _} from 'gettext';
 
 import {BatterySetWidget} from './batterySetWidget.js';
 import {ToggleButtonsSet} from './toggleButtonsSet.js';
 import {CircleBatteryIcon} from './circleBatteryIconWidget.js';
 import {OptionsBox} from './optionsBox.js';
-import {Gtxt as _} from '../utils.js';
 
 export const DeviceRowNavPage = GObject.registerClass({
     GTypeName: 'BudsLink_DeviceRowNavPage',

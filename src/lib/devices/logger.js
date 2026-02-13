@@ -2,12 +2,13 @@
 
 import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
-import {LogDir} from '../../appLibs/utils.js';
 
 const MAX_LOG_BYTES = 1024 * 1024;
 
 const LOG_INFO = true;
 const LOG_BYTES = true;
+const LogDir = GLib.build_filenamev([GLib.get_user_state_dir(), 'log']);
+GLib.mkdir_with_parents(LogDir, 0o755);
 
 let liveLogSink = null;
 
