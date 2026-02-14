@@ -15,3 +15,24 @@ subdir('data')
 subdir('src')
 subdir('po')
 
+gvc_namespace = 'budslink-gvc'
+
+pkgdatadir = join_paths(get_option('datadir'), gvc_namespace)
+pkglibdir  = join_paths(get_option('libdir'),  gvc_namespace)
+
+libgvc = subproject(
+  'gvc',
+  default_options: [
+    'package_name=' + gvc_namespace,
+    'package_version=' + meson.project_version(),
+    'pkgdatadir=' + pkgdatadir,
+    'pkglibdir=' + pkglibdir,
+    'static=false',
+    'introspection=true',
+    'alsa=false',
+  ],
+)
+
+libgvc_gir = libgvc.get_variable('libgvc_gir')
+
+

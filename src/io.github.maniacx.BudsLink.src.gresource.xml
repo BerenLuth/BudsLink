@@ -4,11 +4,11 @@
 	<gresource prefix="/io/github/maniacx/BudsLink/js">
 		<file>app.js</file>
 		<file>main.js</file>
-		<file>appLibs/pactlSubscriber.js</file>
 		<file>appLibs/signalTracker.js</file>
 		<file>appLibs/confirueWindowlauncher.js</file>
 		<file>appLibs/bluetoothClient.js</file>
 		<file>appLibs/themeManager.js</file>
+		<file>appLibs/gvcProvider.js</file>
 		<file>appLibs/widgets/checkButtonBin.js</file>
 		<file>appLibs/widgets/colorHelpers.js</file>
 		<file>appLibs/widgets/radioButtonBin.js</file>

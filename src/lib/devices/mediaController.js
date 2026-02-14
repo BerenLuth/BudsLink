@@ -3,15 +3,12 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
-import {createLogger} from './logger.js';
-import {addListener, removeListener} from '../../appLibs/pactlSubscriber.js';
-
+import {Gvc, Volume} from '../../appLibs/gvcProvider.js';
 
 const MEDIA_PLAYER_PREFIX = 'org.mpris.MediaPlayer2.';
-const COMP_DURATION = 350;
 
 export const MediaController = GObject.registerClass({
-    GTypeName: 'BudsLink_MediaController',
+    GTypeName: 'BluetoothBatteryMeter_MediaController',
     Properties: {
         'output-is-a2dp': GObject.ParamSpec.boolean(
             'output-is-a2dp', 'output-is-a2dp', '', GObject.ParamFlags.READWRITE, false
@@ -20,409 +17,250 @@ export const MediaController = GObject.registerClass({
 }, class MediaController extends GObject.Object {
     _init(settings, devicePath, previousOnDestroyVolume) {
         super._init();
-        this._log = createLogger('MediaController');
         this._settings = settings;
         this._devicePath = devicePath;
         const indexMacAddress = devicePath.indexOf('dev_') + 4;
-        this._macId = devicePath.substring(indexMacAddress);
+        this._macAddress = devicePath.substring(indexMacAddress);
+
+        this._controllerReady = false;
         this._previousVolume = previousOnDestroyVolume;
-        this._pendingMuteVolumeRestore = -1;
+        this._sink = null;
+        this._defaultSinkChangedId = null;
+        this._stateId = null;
+        this._volumeId = null;
+        this._muteId = null;
 
-        this._isSinkDefault = false;
-        this._isStreaming = false;
-        this._volume = null;
-        this._muted = null;
-
-        this._asyncCancellable = new Gio.Cancellable();
-
-        this._subscribeStdoutFd = -1;
-        this._decodeTimeoutId = 0;
-
-        this._mprisNames = [];
+        this._mprisNames = null;
         this._lastPausedPlayer = null;
         this._playbackStatusChangePending = false;
-        this._fadeVolumeInProgess = false;
 
-        this._initialize();
-    }
-
-    async _runPactl(args, isJson) {
-        if (this._asyncCancellable?.is_cancelled())
-            return null;
-
-        const proc = new Gio.Subprocess({
-            argv: ['env', 'LANG=C', 'LC_ALL=C', ...args],
-            flags: Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE,
-        });
-
-        proc.init(null);
-
-        try {
-            const [, stdoutBytes, stderrBytes] = await new Promise((resolve, reject) => {
-                proc.communicate_async(
-                    null,
-                    this._asyncCancellable,
-                    (obj, res) => {
-                        try {
-                            resolve(obj.communicate_finish(res));
-                        } catch (e) {
-                            reject(e);
-                        }
-                    }
-                );
-            });
-
-            if (this._asyncCancellable?.is_cancelled())
-                return null;
-
-            if (stderrBytes?.get_size() > 0) {
-                const decoder = new TextDecoder('utf-8', {fatal: false});
-                const stderr = decoder.decode(stderrBytes.get_data());
-                this._log.error(stderr, 'runPactl Error');
-            }
-
-            if (!stdoutBytes)
-                return null;
-
-            const decoder = new TextDecoder('utf-8', {fatal: false});
-            const stdout = decoder.decode(stdoutBytes.get_data());
-
-            return isJson ? JSON.parse(stdout) : stdout;
-        } catch {
-            return null;
-        }
-    }
-
-    async _isDefaultSink() {
-        const defaultSink =
-            await this._runPactl(['pactl', '-f', 'json', 'get-default-sink'], false);
-
-        return defaultSink && defaultSink.includes(this._macId);
-    }
-
-    async _getCard() {
-        const cards = await this._runPactl(['pactl', '-f', 'json', 'list', 'cards'], true);
-        if (!Array.isArray(cards))
-            return null;
-
-        const card = cards.find(c => c.name?.includes(this._macId));
-        if (!card)
-            return null;
-
-        return card;
-    }
-
-    async _getSink() {
-        const sinks = await this._runPactl(['pactl', '-f', 'json', 'list', 'sinks'], true);
-        if (!Array.isArray(sinks))
-            return null;
-
-        const sink = sinks.find(s => s.name?.includes(this._macId));
-        if (!sink)
-            return null;
-
-        return sink;
-    }
-
-    _isA2DP(card) {
-        const profile =
-            typeof card?.active_profile === 'string'
-                ? card.active_profile
-                : card?.active_profile?.name ?? '';
-
-        return profile.includes('a2dp');
-    }
-
-    _getSinkVolumePercent(sink) {
-        if (!sink?.volume)
-            return null;
-
-        let max = null;
-
-        for (const ch of Object.values(sink.volume)) {
-            if (!ch?.value_percent)
-                continue;
-
-            const v = parseInt(ch.value_percent, 10);
-            if (Number.isNaN(v))
-                continue;
-
-            if (max === null || v > max)
-                max = v;
-        }
-
-        return max;
-    }
-
-    async _setSinkVolume(volumePercent) {
-        const sinkName = this._sink?.name;
-        if (!sinkName)
+        this._control = Volume.getMixerControl();
+        if (!this._control)
             return;
 
-        const volumeArg = `${Math.round(volumePercent)}%`;
-
-        try {
-            await this._runPactl(['pactl', 'set-sink-volume', sinkName, volumeArg], false);
-        } catch (e) {
-            this._log.error('Failed to set sink volume:', e);
-        }
-    }
-
-    _isStreamingRunning(sink) {
-        if (this._isSinkDefault)
-            this._sink = sink;
-
-        const volume = this._getSinkVolumePercent(sink);
-
-        if (typeof volume === 'number' && this._volume !== volume) {
-            this._volume = volume;
-            if (!this._fadeVolumeInProgess && this._attenuated) {
-                this._previousVolume = -1;
-                this._attenuated = false;
-            }
-        }
-
-        const muted = sink?.mute ?? null;
-        if (this._muted !== muted) {
-            this._muted = muted;
-            if (muted && this._attenuated) {
-                this._pendingMuteVolumeRestore = this._previousVolume;
-                this._previousVolume = -1;
-            }
-
-            if (!muted && this._pendingMuteVolumeRestore !== -1) {
-                this._setSinkVolume(this._pendingMuteVolumeRestore);
-                this._pendingMuteVolumeRestore = -1;
-            }
-        }
-
-        return sink?.state === 'RUNNING';
-    }
-
-    async _initialize() {
-        try {
-            const isDefault = await this._isDefaultSink();
-            if (isDefault) {
-                this._isSinkDefault = true;
-                const card = await this._getCard();
-                const sink = await this._getSink();
-                if (card && sink) {
-                    this.output_is_a2dp = this._isA2DP(card);
-                    this._isStreaming = this._isStreamingRunning(sink);
-                }
-            }
-
-            this._pactlListener = line => this._handlePactlEvent(line);
-            addListener(this._pactlListener);
-        } catch (e) {
-            this._log.error(e);
-        }
-    }
-
-    _handlePactlEvent(event) {
-        if (event.includes('server')) {
-            this._lastEvent = 'server';
-        } else if (event.includes('card')) {
-            if (this._lastEvent !== 'server')
-                this._lastEvent = 'card';
-        } else if (event.includes('sink')) {
-            if (!this._lastEvent)
-                this._lastEvent = 'sink';
+        if (this._control.get_state() === Gvc.MixerControlState.READY) {
+            this._onControlReady();
+            this._controllerReady = true;
         } else {
-            return;
+            this._controllerReady = false;
         }
 
-        if (this._decodeTimeoutId > 0)
-            return;
-
-        this._decodeTimeoutId = GLib.timeout_add(
-            GLib.PRIORITY_LOW,
-            300,
-            () => {
-                this._decodeTimeoutId = 0;
-                const eventType = this._lastEvent;
-                this._lastEvent = null;
-                this._decodeEvent(eventType);
-                return GLib.SOURCE_REMOVE;
+        this._control.connect('state-changed', () => {
+            if (this._control.get_state() === Gvc.MixerControlState.READY) {
+                this._onControlReady();
+                this._controllerReady = true;
+            } else {
+                this._disconnectController();
+                this._controllerReady = false;
             }
-        );
-    }
-
-    async _decodeEvent(eventType) {
-        if (eventType === 'server') {
-            const isDefaultSink = await this._isDefaultSink();
-            if (!isDefaultSink && this._isSinkDefault) {
-                this._isSinkDefault = false;
-
-                if (this.output_is_a2dp)
-                    this.output_is_a2dp = false;
-
-                this._isStreaming = false;
-            }
-
-            if (isDefaultSink) {
-                this._isSinkDefault = true;
-
-                const card = await this._getCard();
-                const sink = await this._getSink();
-
-                if (card && sink) {
-                    const isA2dpOutput = this._isA2DP(card);
-                    if (isA2dpOutput !== this.output_is_a2dp)
-                        this.output_is_a2dp = isA2dpOutput;
-
-                    this._isStreaming = this._isStreamingRunning(sink);
-                }
-            }
-        } else if (eventType === 'card' && this._isSinkDefault) {
-            const card = await this._getCard();
-            const sink = await this._getSink();
-
-            if (card && sink) {
-                const isA2dpOutput = this._isA2DP(card);
-                if (isA2dpOutput !== this.output_is_a2dp)
-                    this.output_is_a2dp = isA2dpOutput;
-
-                this._isStreaming = this._isStreamingRunning(sink);
-            }
-        } else if (eventType === 'sink' && this._isSinkDefault) {
-            const sink = await this._getSink();
-            this._isStreaming = this._isStreamingRunning(sink);
-        }
-    }
-
-    _startFade(current, target) {
-        if (this._fadeTimeoutId > 0)
-            return Promise.resolve();
-
-        this._fadeStep = 0;
-
-        const curve = [0, 10, 25, 45, 65, 80, 92, 100];
-        const steps = curve.map(p =>
-            Math.round(current + (target - current) * p / 100)
-        );
-
-        let running = false;
-
-        return new Promise(resolve => {
-            this._fadeTimeoutId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT,
-                125,
-                () => {
-                    if (running)
-                        return GLib.SOURCE_CONTINUE;
-
-                    if (this._asyncCancellable?.is_cancelled()) {
-                        this._fadeTimeoutId = 0;
-                        resolve();
-                        return GLib.SOURCE_REMOVE;
-                    }
-
-                    const v = steps[this._fadeStep++];
-                    if (v === undefined) {
-                        this._fadeTimeoutId = 0;
-                        resolve();
-                        return GLib.SOURCE_REMOVE;
-                    }
-
-                    running = true;
-
-                    this._setSinkVolume(v)
-                    .finally(() => {
-                        running = false;
-                    });
-
-                    return GLib.SOURCE_CONTINUE;
-                }
-            );
         });
     }
 
-    _startFadeGuardDelay() {
-        if (this._fadeVolumeTimeoutId) {
-            GLib.source_remove(this._fadeVolumeTimeoutId);
-            this._fadeVolumeTimeoutId = 0;
-        }
-
-        this._fadeVolumeTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, COMP_DURATION, () => {
-            this._fadeVolumeInProgess = false;
-            this._fadeVolumeTimeoutId = 0;
-            return GLib.SOURCE_REMOVE;
+    _monitorSinkVolume() {
+        this._volumeId = this._sink?.connect('notify::volume', () => {
+            this._previousVolume = -1;
         });
     }
 
-    async _lowerVolume(caVolume) {
-        if (this._attenuated)
+    _initializeSink(sink) {
+        if (this._sink === sink)
             return;
 
-        if (this._previousVolume >= 0)
-            return;
+        this._unmonitorSink();
 
-        const currentVolume = this._volume;
-        const targetVolume = Math.floor(caVolume);
+        this._sink = sink;
 
-        if (currentVolume <= targetVolume)
-            return;
+        if (sink.get_state() === Gvc.MixerStreamState.RUNNING)
+            this._sinkStateIsRunning = true;
+        else
+            this._sinkStateIsRunning = false;
 
-        this._attenuated = true;
-        this._previousVolume = currentVolume;
-        this._fadeVolumeInProgess = true;
 
-        await this._startFade(currentVolume, targetVolume);
-        this._startFadeGuardDelay();
-    }
+        this._sinkIsMuted = this._sink.get_is_muted();
 
-    _restoreVolumeDelayed() {
-        if (!this._attenuated)
-            return;
+        this._stateId = sink.connect('notify::state', () => {
+            const state = this._sink.get_state();
+            if (state === Gvc.MixerStreamState.RUNNING)
+                this._sinkStateIsRunning = true;
+            else
+                this._sinkStateIsRunning = false;
+        });
 
-        if (this._previousVolume < 0)
-            return;
+        this._muteId = sink.connect('notify::is-muted', () => {
+            this._sinkIsMuted = this._sink.get_is_muted();
 
-        if (this._restoreVolTimeoutId)
-            return;
-
-        this._restoreVolTimeoutId = GLib.timeout_add(
-            GLib.PRIORITY_DEFAULT,
-            COMP_DURATION,
-            () => {
-                this._restoreVolume();
-                this._restoreVolTimeoutId = 0;
-                return GLib.SOURCE_REMOVE;
+            if (this._sinkIsMuted) {
+                if (this._previousVolume >= 0) {
+                    this._sink.set_volume(this._previousVolume);
+                    this._sink.push_volume();
+                    this._previousVolume = -1;
+                }
             }
-        );
+        });
+
+        this._monitorSinkVolume();
     }
 
-    async _restoreVolume() {
-        if (!this._attenuated)
+    _unmonitorSinkVolume() {
+        if (this._volumeId) {
+            this._sink.disconnect(this._volumeId);
+            this._volumeId = null;
+        }
+    }
+
+    _unmonitorSink() {
+        if (!this._sink)
             return;
 
-        if (this._previousVolume < 0)
-            return;
+        if (this._stateId) {
+            this._sink.disconnect(this._stateId);
+            this._stateId = null;
+        }
 
-        const currentVolume = this._volume;
-        const targetVolume = this._previousVolume;
+        if (this._muteId) {
+            this._sink.disconnect(this._muteId);
+            this._muteId = null;
+        }
+        this._unmonitorSinkVolume();
 
-        this._attenuated = false;
-        this._fadeVolumeInProgess = true;
+        this._sink = null;
+    }
 
-        await this._startFade(currentVolume, targetVolume);
-        this._startFadeGuardDelay();
+    _findA2dpSinkForMac() {
+        const sinks = this._control.get_sinks();
+        for (const sink of sinks) {
+            if (!sink.get_name().includes(this._macAddress))
+                continue;
+            const device = this._control.lookup_device_from_stream(sink);
+            if (device?.get_active_profile() === 'a2dp-sink')
+                return sink;
+        }
+        return null;
+    }
 
-        this._previousVolume = -1;
+    _checkAndMonitorSink() {
+        const defaultSink = this._control.get_default_sink();
+        const a2dpSink = this._findA2dpSinkForMac();
+
+        if (defaultSink && a2dpSink && defaultSink === a2dpSink) {
+            this.output_is_a2dp = true;
+            this.notify('output-is-a2dp');
+            this._initializeSink(a2dpSink);
+        } else {
+            this.output_is_a2dp = false;
+            this.notify('output-is-a2dp');
+            this._unmonitorSink();
+        }
+    }
+
+    _onControlReady() {
+        if (this._defaultSinkChangedId)
+            this._control.disconnect(this._defaultSinkChangedId);
+
+        this._defaultSinkChangedId = this._control.connect('default-sink-changed', () => {
+            this._checkAndMonitorSink();
+        });
+        this._checkAndMonitorSink();
+    }
+
+    _disconnectController() {
+        this._unmonitorSink();
+        if (this._defaultSinkChangedId)
+            this._control.disconnect(this._defaultSinkChangedId);
     }
 
     setConversationAwarenessVolume(attenuated, caVolume) {
-        if (!this._isStreaming || !this.output_is_a2dp || this._muted || this._volume === null)
+        if (!this._controllerReady || !this._sink || !this._sinkStateIsRunning || this._sinkIsMuted)
             return;
 
-        if (this._fadeVolumeInProgess)
+        if (this._attenuated === attenuated)
             return;
 
-        if (attenuated)
-            this._lowerVolume(caVolume);
-        else
-            this._restoreVolumeDelayed();
+        this._attenuated = attenuated;
+
+        if (attenuated && this._previousVolume >= 0)
+            return;
+
+        if (!attenuated && this._previousVolume < 0)
+            return;
+
+        const easeInOutQuad = t => {
+            return t < 0.5
+                ? 2 * t * t
+                : -1 + (4 - 2 * t) * t;
+        };
+
+        if (this._volumeRampTimeoutId)
+            GLib.source_remove(this._volumeRampTimeoutId);
+        this._volumeRampTimeoutId = null;
+
+        if (attenuated) {
+            const maxVolume = this._control.get_vol_max_norm();
+            const fadeOutTargetVolume = Math.floor(caVolume * maxVolume / 100);
+            const currentVolume = this._sink.volume;
+
+            if (currentVolume <= fadeOutTargetVolume)
+                return;
+
+            this._previousVolume = currentVolume;
+            const duration = 1000;
+            const steps = 50;
+            const interval = duration / steps;
+            let step = 0;
+
+            this._unmonitorSinkVolume();
+
+            this._volumeRampTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, interval, () => {
+                if (step >= steps) {
+                    this._sink.set_volume(fadeOutTargetVolume);
+                    this._sink.push_volume();
+                    this._monitorSinkVolume();
+                    this._volumeRampTimeoutId = null;
+                    return GLib.SOURCE_REMOVE;
+                }
+
+                const t = step / steps;
+                const eased = easeInOutQuad(t);
+                const newVolume =
+                    Math.round(currentVolume + (fadeOutTargetVolume - currentVolume) * eased);
+
+                this._sink.set_volume(newVolume);
+                this._sink.push_volume();
+
+                step++;
+                return GLib.SOURCE_CONTINUE;
+            });
+        } else {
+            const currentVolume = this._sink.volume;
+            const fadeInTargetVolume = this._previousVolume;
+            const duration = 1000;
+            const steps = 50;
+            const interval = duration / steps;
+            let step = 0;
+
+            this._unmonitorSinkVolume();
+
+            this._volumeRampTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, interval, () => {
+                if (step >= steps) {
+                    this._sink.set_volume(fadeInTargetVolume);
+                    this._sink.push_volume();
+                    this._previousVolume = -1;
+                    this._monitorSinkVolume();
+                    this._volumeRampTimeoutId = null;
+                    return GLib.SOURCE_REMOVE;
+                }
+
+                const t = step / steps;
+                const eased = easeInOutQuad(t);
+                const newVolume =
+                    Math.round(currentVolume + (fadeInTargetVolume - currentVolume) * eased);
+                this._sink.set_volume(newVolume);
+                this._sink.push_volume();
+
+                step++;
+                return GLib.SOURCE_CONTINUE;
+            });
+        }
     }
 
     _playerPropsChanged() {
@@ -446,8 +284,8 @@ export const MediaController = GObject.registerClass({
                         -1,
                         null
                     );
-                } catch (e) {
-                    this._log.error(e);
+                } catch {
+                    console.error('Bluetooth-Battery-Meter: Error call Mpris Pause method');
                 }
                 const status = this._playerProxy?.get_cached_property('PlaybackStatus')?.unpack();
                 this._playbackStatusChangePending = status !== 'Paused';
@@ -520,7 +358,10 @@ export const MediaController = GObject.registerClass({
     }
 
     async changeActivePlayerState(requestedState) {
-        if (requestedState === 'pause' && !this._isStreaming)
+        if (!this._controllerReady || !this._sink)
+            return;
+
+        if (requestedState === 'pause' && !this._sinkStateIsRunning)
             return;
 
         this._requestedState = requestedState;
@@ -569,34 +410,20 @@ export const MediaController = GObject.registerClass({
     }
 
     destroy() {
-        this._onDestroy?.();
-
-        if (this._decodeTimeoutId) {
-            GLib.source_remove(this._decodeTimeoutId);
-            this._decodeTimeoutId = 0;
-        }
-
-        removeListener(this._pactlListener);
-        this._pactlListener = null;
-
-        this._asyncCancellable?.cancel();
-
-
-        if (this._fadeVolumeTimeoutId) {
-            GLib.source_remove(this._fadeVolumeTimeoutId);
-            this._fadeVolumeTimeoutId = 0;
-        }
-
-        if (this._restoreVolTimeoutId) {
-            GLib.source_remove(this._restoreVolTimeoutId);
-            this._restoreVolTimeoutId = 0;
-        }
-
-
+        if (this._volumeRampTimeoutId)
+            GLib.remove_source(this._volumeRampTimeoutId);
+        this._volumeRampTimeoutId = null;
+        this._onDestroy();
+        this._disconnectController();
         this._disconnectPlayerProxy();
-
-        this._settings = null;
-        this._mprisNames = [];
+        if (this._controlSignalId)
+            this._control?.disconnect(this._controlSignalId);
+        this._controlSignalId = null;
+        this._control?.disconnectObject(this);
+        this._controllerReady = false;
+        this._lastPausedPlayer = null;
+        this._playbackStatusChangePending = null;
+        this._control = null;
     }
 });
 
