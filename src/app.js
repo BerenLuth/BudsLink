@@ -12,6 +12,7 @@ import {registerDestroyableType, destroyAllSignals} from './appLibs/signalTracke
 import {createLogger} from './lib/devices/logger.js';
 import {DeviceRowNavPage} from './appLibs/widgets/deviceRow.js';
 import {SettingsButton} from './appLibs/widgets/settingsButton.js';
+import {ThemeManager} from './appLibs/themeManager.js';
 import {BluetoothClient} from './appLibs/bluetoothClient.js';
 import {initConfigureWindowLauncher} from './appLibs/confirueWindowlauncher.js';
 import {EnhancedDeviceSupportManager} from './lib/enhancedDeviceSupportManager.js';
@@ -43,6 +44,14 @@ export const BudsLinkApplication = GObject.registerClass({
         });
 
         this._log = createLogger('Main');
+
+        this.connect('startup', () => {
+            try {
+                this._onStartup();
+            } catch (e) {
+                this._log.error(e);
+            }
+        });
 
         this.connect('activate', () => {
             try {
@@ -77,6 +86,20 @@ export const BudsLinkApplication = GObject.registerClass({
         this._compDevices = new Map();
     }
 
+    _onStartup() {
+        this.settings = new Gio.Settings({schema_id: AppId});
+
+        this._themeManager = new ThemeManager(this, this.settings);
+
+        const provider = new Gtk.CssProvider();
+        provider.load_from_resource('/io/github/maniacx/BudsLink/stylesheet.css');
+        Gtk.StyleContext.add_provider_for_display(
+            Gdk.Display.get_default(),
+            provider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        );
+    }
+
     _onActivate() {
         if (this._window) {
             this._window.present();
@@ -95,20 +118,8 @@ export const BudsLinkApplication = GObject.registerClass({
             return false;
         });
 
-
         this.airpodsEnabled = true;
         this.sonyEnabled = true;
-
-        this.settings = new Gio.Settings({schema_id: AppId}); ;
-
-        const provider = new Gtk.CssProvider();
-        provider.load_from_resource('/io/github/maniacx/BudsLink/stylesheet.css');
-
-        Gtk.StyleContext.add_provider_for_display(
-            Gdk.Display.get_default(),
-            provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        );
 
         const iconsPath = GLib.build_filenamev([AppDir, 'icons']);
         const iconTheme = Gtk.IconTheme.get_for_display(this._window.get_display());

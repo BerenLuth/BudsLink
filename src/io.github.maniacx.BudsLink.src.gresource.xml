@@ -8,6 +8,7 @@
 		<file>appLibs/signalTracker.js</file>
 		<file>appLibs/confirueWindowlauncher.js</file>
 		<file>appLibs/bluetoothClient.js</file>
+		<file>appLibs/themeManager.js</file>
 		<file>appLibs/widgets/checkButtonBin.js</file>
 		<file>appLibs/widgets/colorHelpers.js</file>
 		<file>appLibs/widgets/radioButtonBin.js</file>
