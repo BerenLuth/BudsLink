@@ -121,6 +121,8 @@ export const SkuModel = {
 };
 
 export const PayloadType = {
+    DEVICE_MODEL_GET: 0xC01C,
+
     SERIAL_GET: 0xC006,
     SERIAL_RET: 0x4006,
 

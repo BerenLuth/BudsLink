@@ -124,9 +124,10 @@ class NothingBudsSocket extends SocketHandler {
     }
 
     postConnectInitialization() {
-        this._sendPacket(PayloadType.SERIAL_GET);
+        this._sendPacket(PayloadType.DEVICE_MODEL_GET);
+        this._getModelByName();
 
-        this._modelFallbackTimeoutId = GLib.timeout_add_seconds(
+        /*        this._modelFallbackTimeoutId = GLib.timeout_add_seconds(
             GLib.PRIORITY_DEFAULT,
             2,
             () => {
@@ -136,7 +137,7 @@ class NothingBudsSocket extends SocketHandler {
                 this._modelFallbackTimeoutId = null;
                 return GLib.SOURCE_REMOVE;
             }
-        );
+        );  */
     }
 
     _parseData(resp) {
