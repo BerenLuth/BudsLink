@@ -15,7 +15,6 @@ import Donphan from './deviceConfigs/donphan.js';
 import Crobat from './deviceConfigs/crobat.js';
 import Twos from './deviceConfigs/twos.js';
 
-
 export const NothingBudsModelList = [
     Elekid,
     Flaaffy,
@@ -33,98 +32,9 @@ export const NothingBudsModelList = [
     Twos,
 ];
 
-export const SkuModel = {
-    // ---------- Nothing Ear (1) ----------
-    '01': {modelId: 'B181', modelColor: 'ear_1_white'},
-    '02': {modelId: 'B181', modelColor: 'ear_1_black'},
-    '03': {modelId: 'B181', modelColor: 'ear_1_white'},
-    '04': {modelId: 'B181', modelColor: 'ear_1_black'},
-    '06': {modelId: 'B181', modelColor: 'ear_1_black'},
-    '07': {modelId: 'B181', modelColor: 'ear_1_white'},
-    '08': {modelId: 'B181', modelColor: 'ear_1_black'},
-    '10': {modelId: 'B181', modelColor: 'ear_1_black'},
-
-    // ---------- Nothing Ear (stick) ----------
-    '14': {modelId: 'B157', modelColor: 'ear_stick'},
-    '15': {modelId: 'B157', modelColor: 'ear_stick'},
-    '16': {modelId: 'B157', modelColor: 'ear_stick'},
-
-    // ---------- Nothing Ear (2) ----------
-    '17': {modelId: 'B155', modelColor: 'ear_2_white'},
-    '18': {modelId: 'B155', modelColor: 'ear_2_white'},
-    '19': {modelId: 'B155', modelColor: 'ear_2_white'},
-    '27': {modelId: 'B155', modelColor: 'ear_2_black'},
-    '28': {modelId: 'B155', modelColor: 'ear_2_black'},
-    '29': {modelId: 'B155', modelColor: 'ear_2_black'},
-
-    // ---------- CMF Buds Pro (Corsola) ----------
-    '30': {modelId: 'B163', modelColor: 'corsola_black'},
-    '31': {modelId: 'B163', modelColor: 'corsola_black'},
-    '32': {modelId: 'B163', modelColor: 'corsola_white'},
-    '33': {modelId: 'B163', modelColor: 'corsola_white'},
-    '34': {modelId: 'B163', modelColor: 'corsola_orange'},
-    '35': {modelId: 'B163', modelColor: 'corsola_orange'},
-
-    // ---------- CMF Neckband Pro (Crobat) ----------
-    '48': {modelId: 'B164', modelColor: 'crobat_orange'},
-    '49': {modelId: 'B164', modelColor: 'crobat_white'},
-    '50': {modelId: 'B164', modelColor: 'crobat_black'},
-    '51': {modelId: 'B164', modelColor: 'crobat_black'},
-    '52': {modelId: 'B164', modelColor: 'crobat_white'},
-    '53': {modelId: 'B164', modelColor: 'crobat_orange'},
-
-    // ---------- CMF Buds (Donphan) ----------
-    '54': {modelId: 'B168', modelColor: 'donphan_black'},
-    '55': {modelId: 'B168', modelColor: 'donphan_black'},
-    '56': {modelId: 'B168', modelColor: 'donphan_white'},
-    '57': {modelId: 'B168', modelColor: 'donphan_white'},
-    '58': {modelId: 'B168', modelColor: 'donphan_orange'},
-    '59': {modelId: 'B168', modelColor: 'donphan_orange'},
-
-    // ---------- CMF Buds Pro 2 (Entei) ----------
-    '61': {modelId: 'B170', modelColor: 'entei_black'},
-    '62': {modelId: 'B170', modelColor: 'entei_white'},
-
-    // ---------- Nothing Ear (a) (Cleffa) ----------
-    '63': {modelId: 'B162', modelColor: 'cleffa_black'},
-    '64': {modelId: 'B162', modelColor: 'cleffa_white'},
-    '65': {modelId: 'B162', modelColor: 'cleffa_yellow'},
-    '66': {modelId: 'B162', modelColor: 'cleffa_black'},
-    '67': {modelId: 'B162', modelColor: 'cleffa_white'},
-    '68': {modelId: 'B162', modelColor: 'cleffa_yellow'},
-
-    // ---------- CMF Buds Pro 2 (Entei, alt SKUs) ----------
-    '69': {modelId: 'B170', modelColor: 'entei_black'},
-    '70': {modelId: 'B170', modelColor: 'entei_white'},
-
-    // ---------- Nothing Ear (a) (Cleffa alt) ----------
-    '71': {modelId: 'B162', modelColor: 'cleffa_black'},
-    '72': {modelId: 'B162', modelColor: 'cleffa_white'},
-    '73': {modelId: 'B162', modelColor: 'cleffa_yellow'},
-
-    // ---------- CMF Buds Pro 2 (Entei alt) ----------
-    '74': {modelId: 'B170', modelColor: 'entei_black'},
-    '75': {modelId: 'B170', modelColor: 'entei_white'},
-
-    // ---------- CMF Buds 2 / 2 Plus (Espeon) ----------
-    '76': {modelId: 'B172', modelColor: 'espeon_black'},
-    '77': {modelId: 'B172', modelColor: 'espeon_white'},
-    '78': {modelId: 'B172', modelColor: 'espeon_orange'},
-    '79': {modelId: 'B172', modelColor: 'espeon_blue'},
-    '80': {modelId: 'B172', modelColor: 'espeon_blue'},
-    '81': {modelId: 'B172', modelColor: 'espeon_orange'},
-    '82': {modelId: 'B172', modelColor: 'espeon_white'},
-    '83': {modelId: 'B172', modelColor: 'espeon_black'},
-
-    // ---------- Nothing Ear (open) ----------
-    '11200005': {modelId: 'B174', modelColor: 'flaaffy_white'},
-};
-
 export const PayloadType = {
     DEVICE_MODEL_GET: 0xC01C,
-
-    SERIAL_GET: 0xC006,
-    SERIAL_RET: 0x4006,
+    DEVICE_MODEL_RET: 0x401C,
 
     UTC_TIME_SET: 0xF00A,
 

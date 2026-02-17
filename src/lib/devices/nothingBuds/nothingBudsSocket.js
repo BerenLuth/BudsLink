@@ -6,7 +6,7 @@ import {SocketHandler} from '../socketByProfile.js';
 import {booleanFromByte, isValidByte} from '../deviceUtils.js';
 import {getBluezDeviceProxy} from '../../bluezDeviceProxy.js';
 import {
-    crc16Ansi, NothingBudsModelList, SkuModel, PayloadType, BatteryType
+    crc16Ansi, NothingBudsModelList, PayloadType, BatteryType
 } from './nothingBudsConfig.js';
 
 const HEADER_MAGIC = [0x55, 0x60, 0x01];
@@ -125,28 +125,23 @@ class NothingBudsSocket extends SocketHandler {
 
     postConnectInitialization() {
         this._sendPacket(PayloadType.DEVICE_MODEL_GET);
-        this._getModelByName();
 
-        /*        this._modelFallbackTimeoutId = GLib.timeout_add_seconds(
-            GLib.PRIORITY_DEFAULT,
-            2,
-            () => {
-                if (!this._modelInitialized)
-                    this._getModelByName();
+        this._modelFallbackTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 2, () => {
+            if (!this._modelInitialized)
+                this._getModelByName();
 
-                this._modelFallbackTimeoutId = null;
-                return GLib.SOURCE_REMOVE;
-            }
-        );  */
+            this._modelFallbackTimeoutId = null;
+            return GLib.SOURCE_REMOVE;
+        });
     }
 
     _parseData(resp) {
         const {payloadType, payload} = resp;
 
         switch (payloadType) {
-            case PayloadType.SERIAL_RET:
+            case PayloadType.DEVICE_MODEL_RET:
                 if (!this._modelInitialized)
-                    this._initializeModelBySku(payload);
+                    this._getModelFromResponse(payload);
                 break;
             case PayloadType.FIRMWARE_NTFY:
                 this._parseFirmwareInfo(payload);
@@ -199,7 +194,6 @@ class NothingBudsSocket extends SocketHandler {
     async _wait() {
         if (this._initTimeoutId)
             return;
-
 
         await new Promise(resolve => {
             this._initTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
@@ -263,7 +257,6 @@ class NothingBudsSocket extends SocketHandler {
         }
     }
 
-
     _getModelByName() {
         this._log.info('Serial timeout, falling back to model-by-name');
         const bluezDeviceProxy = getBluezDeviceProxy(this._devicePath);
@@ -287,73 +280,24 @@ class NothingBudsSocket extends SocketHandler {
         this._onModelInitialized(modelData);
     }
 
-
-    _initializeModelBySku(payload) {
-        this._log.info(`Get Model By Sku: ${payload}`);
-        if (!payload || payload.length === 0) {
-            this._log.info('Payload for serial number is empty');
+    _getModelFromResponse(payload) {
+        if (!payload || payload.length < 2) {
+            this._log.info('Model response payload invalid');
             return;
         }
 
-        const text = new TextDecoder().decode(payload);
+        const modelIdNum = payload[1] << 8 | payload[0];
+        const modelId = modelIdNum.toString(16).toUpperCase();
 
-        let serial = null;
-
-        for (const line of text.split('\n')) {
-            const parts = line.split(',');
-            if (parts.length === 3 && parts[1].trim() === '4') {
-                const value = parts[2].trim();
-                if (value.length > 0) {
-                    serial = value;
-                    break;
-                }
-            }
-        }
-
-        if (!serial) {
-            this._log.info('Serial number not found in payload');
-            return;
-        }
-
-        this._log.info(`Parsed serial number: ${serial}`);
-
-        let sku = null;
-
-        if (serial === '12345678901234567') {
-            sku = '01';
-        } else if (serial.length >= 6) {
-            const head = serial.slice(0, 2);
-            if (head === 'MA') {
-                const year = serial.slice(6, 8);
-                if (year === '22' || year === '23')
-                    sku = '14';
-                else if (year === '24' || year === '25')
-                    sku = '11200005';
-            } else if (head === 'SH' || head === '13') {
-                sku = serial.slice(4, 6);
-            }
-        }
-
-        if (!sku) {
-            this._log.info('SKU could not be derived from serial');
-            return;
-        }
-
-        const modelId = SkuModel[sku]?.modelId ?? null;
-
-        if (this._modelFallbackTimeoutId) {
-            GLib.Source.remove(this._modelFallbackTimeoutId);
-            this._modelFallbackTimeoutId = null;
-        }
-
-        const modelData = NothingBudsModelList.find(m => m.modelId === modelId);
+        const modelData = NothingBudsModelList.find(model => model.modelId === modelId);
 
         if (!modelData) {
-            this._log.info(`Unknown modelId from SKU: ${modelId}`);
+            this._log.info(`No model matched for ID: ${modelId}`);
             return;
         }
 
-        this._log.info(`Model resolved by Sku ${modelData.name} (${modelData.modelId})`);
+        this._log.info(`Model resolved by ID: ${modelData.name} (${modelData.modelId})`);
+
         this._onModelInitialized(modelData);
     }
 
