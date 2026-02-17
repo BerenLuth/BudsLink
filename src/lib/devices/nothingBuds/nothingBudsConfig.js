@@ -2,14 +2,18 @@
 
 import CMFBuds2Plus from './deviceConfigs/CMFBuds2Plus.js';
 import CMFBudsPro2 from './deviceConfigs/CMFBudsPro2.js';
+import CMFBudspro2 from './deviceConfigs/CMFBudspro2.js';
 import CMFBuds2A from './deviceConfigs/CMFBuds2A.js';
 import CMFBuds2 from './deviceConfigs/CMFBuds2.js';
 import BudsPro from './deviceConfigs/BudsPro.js';
 import CMFBuds from './deviceConfigs/CMFBuds.js';
+import CMFHeadphonePro from './deviceConfigs/CMFHeadphonePro.js';
 import NeckbandPro from './deviceConfigs/NeckbandPro.js';
 import NothingHeadphone1 from './deviceConfigs/NothingHeadphone1.js';
 import NothingEarA from './deviceConfigs/NothingEarA.js';
+import NothingEara from './deviceConfigs/NothingEara.js';
 import NothingEarOpen from './deviceConfigs/NothingEarOpen.js';
+import NothingEar3 from './deviceConfigs/NothingEar3.js';
 import Ear2 from './deviceConfigs/Ear2.js';
 import NothingEar1 from './deviceConfigs/NothingEar1.js';
 import EarStick from './deviceConfigs/EarStick.js';
@@ -18,14 +22,18 @@ import NothingEar from './deviceConfigs/NothingEar.js';
 export const NothingBudsModelList = [
     CMFBuds2Plus,
     CMFBudsPro2,
+    CMFBudspro2,
     CMFBuds2A,
     CMFBuds2,
     BudsPro,
     CMFBuds,
+    CMFHeadphonePro,
     NeckbandPro,
     NothingHeadphone1,
     NothingEarA,
+    NothingEara,
     NothingEarOpen,
+    NothingEar3,
     Ear2,
     NothingEar1,
     EarStick,

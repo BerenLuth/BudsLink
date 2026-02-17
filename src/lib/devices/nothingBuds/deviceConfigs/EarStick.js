@@ -3,7 +3,7 @@
 export default {
     modelId: 'B157',
     name: 'Ear (Stick)',
-    pattern: /^.*Nothing Ear \(Stick\)$/,
+    pattern: /^.*Ear \(Stick\)$/,
 
     batteryLR: true,
     batteryCase: true,

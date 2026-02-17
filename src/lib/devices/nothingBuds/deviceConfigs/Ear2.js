@@ -3,7 +3,7 @@
 export default {
     modelId: 'B155',
     name: 'Ear (2)',
-    pattern: /^.*Nothing Ear \(2\)$/,
+    pattern: /^.*Ear \(2\)$/,
 
     batteryLR: true,
     batteryCase: true,

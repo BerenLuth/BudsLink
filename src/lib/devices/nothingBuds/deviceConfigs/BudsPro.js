@@ -3,7 +3,7 @@
 export default {
     modelId: 'B163',
     name: 'Buds Pro',
-    pattern: /^.*CMF Buds Pro$/,
+    pattern: /^.*Buds Pro$/,
 
     batteryLR: true,
     batteryCase: true,

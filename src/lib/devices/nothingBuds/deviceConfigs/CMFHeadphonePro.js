@@ -1,9 +1,10 @@
 'use strict';
 
+// Nothing Headphone (1)
 export default {
-    modelId: 'B164',
-    name: 'Neckband Pro',
-    pattern: /^.*Neckband Pro$/,
+    modelId: 'B175',
+    name: 'CMF Headphone Pro',
+    pattern: /^.*CMF Headphone Pro$/,
 
     batterySingle: true,
 
@@ -13,6 +14,7 @@ export default {
         more_treble: 0x02,
         more_bass: 0x03,
         custom: 0x05,
+        advance: 0x06,
     },
 
     bassEnhanceLevel: 5,
@@ -30,6 +32,7 @@ export default {
         },
     },
 
+    inEarDetection: true,
     lowLatencyMode: true,
     ring: true,
 
@@ -39,39 +42,53 @@ export default {
         },
         mapping: {
             gestureTypes: {
-                double: 0x02,
-                triple: 0x03,
+                single: 0x01,
                 actionAndHold: 0x07,
             },
 
             actions: {
-                'skip-back': [0x08],
-                'skip-forward': [0x09],
+                'no-action': [0x01],
+                'channel-hop': [0x20],
                 'voice-assistant': [0x0B],
+                'new-reporter': [0x1F],
+                'spatial-audio': [0x1B],
+                'mic-mute': [0x1D],
+                'eq-preset': [0x22],
                 'noise-control': [0x0A, 0x14, 0x15, 0x16],
             },
         },
         gestures: {
-            double: {
+            single: {
                 type: 'press',
                 actions: [
-                    'skip-back',
-                    'skip-forward',
+                    'channel-hop',
                     'voice-assistant',
-                ],
-            },
-            triple: {
-                type: 'press',
-                actions: [
-                    'skip-back',
-                    'skip-forward',
-                    'voice-assistant',
+                    'new-reporter',
+                    'noise-control',
+                    'spatial-audio',
+                    'mic-mute',
+                    'eq-preset',
+                    'no-action',
                 ],
             },
             actionAndHold: {
                 type: 'press',
                 actions: [
+                    'channel-hop',
+                    'voice-assistant',
+                    'new-reporter',
                     'noise-control',
+                    'spatial-audio',
+                    'mic-mute',
+                    'eq-preset',
+                    'no-action',
+                ],
+            },
+            roller: {
+                type: 'roller',
+                action: [
+                    'noise-control',
+                    'no-action',
                 ],
             },
         },
@@ -79,12 +96,11 @@ export default {
         nonAssignable: {
             single: ['play-pause', 'call-answer', 'call-hangup'],
             double: ['call-decline'],
-            rotate: ['volume-control'],
         },
+
     },
 
-
-    albumArtIcon: 'earbuds-neckband',
-    budsIcon: 'earbuds-neckband',
+    albumArtIcon: 'headphone1',
+    budsIcon: 'headphone1',
 };
 

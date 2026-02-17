@@ -1,11 +1,13 @@
 'use strict';
 
+// Nothing Ear (2)
 export default {
-    modelId: 'B164',
-    name: 'Neckband Pro',
-    pattern: /^.*Neckband Pro$/,
+    modelId: 'B173',
+    name: 'Nothing Ear (3)',
+    pattern: /^.*Nothing Ear \(3\)$/,
 
-    batterySingle: true,
+    batteryLR: true,
+    batteryCase: true,
 
     eqPreset: {
         balanced: 0x00,
@@ -13,9 +15,8 @@ export default {
         more_treble: 0x02,
         more_bass: 0x03,
         custom: 0x05,
+        advance: 0x06,
     },
-
-    bassEnhanceLevel: 5,
 
     noiseControl: {
         off: {byte: 0x05},
@@ -30,30 +31,39 @@ export default {
         },
     },
 
+    personalizeAnc: true,
+
+    inEarDetection: true,
     lowLatencyMode: true,
+    earTipTest: true,
     ring: true,
 
     gestureOptions: {
         device: {
-            'single': 0x06,
+            'left': 0x02,
+            'right': 0x03,
         },
         mapping: {
             gestureTypes: {
                 double: 0x02,
                 triple: 0x03,
                 actionAndHold: 0x07,
+                doubleActionAndHold: 0x09,
             },
 
             actions: {
+                'no-action': [0x01],
                 'skip-back': [0x08],
                 'skip-forward': [0x09],
                 'voice-assistant': [0x0B],
+                'volume-up': [0x12],
+                'volume-down': [0x13],
                 'noise-control': [0x0A, 0x14, 0x15, 0x16],
             },
         },
         gestures: {
             double: {
-                type: 'press',
+                type: 'pinch',
                 actions: [
                     'skip-back',
                     'skip-forward',
@@ -61,7 +71,7 @@ export default {
                 ],
             },
             triple: {
-                type: 'press',
+                type: 'pinch',
                 actions: [
                     'skip-back',
                     'skip-forward',
@@ -69,9 +79,22 @@ export default {
                 ],
             },
             actionAndHold: {
-                type: 'press',
+                type: 'pinch',
                 actions: [
                     'noise-control',
+                    'volume-up',
+                    'volume-down',
+                    'voice-assistant',
+                ],
+            },
+            doubleActionAndHold: {
+                type: 'pinch',
+                actions: [
+                    'noise-control',
+                    'volume-up',
+                    'volume-down',
+                    'voice-assistant',
+                    'no-action',
                 ],
             },
         },
@@ -79,12 +102,11 @@ export default {
         nonAssignable: {
             single: ['play-pause', 'call-answer', 'call-hangup'],
             double: ['call-decline'],
-            rotate: ['volume-control'],
         },
     },
 
-
-    albumArtIcon: 'earbuds-neckband',
-    budsIcon: 'earbuds-neckband',
+    albumArtIcon: 'earbuds-stem',
+    budsIcon: 'earbuds-stem',
+    case: 'case-square',
 };
 
