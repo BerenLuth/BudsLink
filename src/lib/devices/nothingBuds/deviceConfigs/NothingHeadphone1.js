@@ -1,11 +1,9 @@
 'use strict';
 
-// Nothing Headphone (1)
 export default {
     modelId: 'B170',
     name: 'Nothing Headphone (1)',
-    pattern: /.*Nothing\s+Headphone\s*\(1\).*/i,
-
+    pattern: /^.*Nothing Headphone \(1\)$/,
 
     batterySingle: true,
 

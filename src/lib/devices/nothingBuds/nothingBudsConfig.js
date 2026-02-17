@@ -1,35 +1,35 @@
 'use strict';
 
-import Elekid from './deviceConfigs/elekid.js';
-import Flaaffy from './deviceConfigs/flaaffy.js';
-import Cleffa from './deviceConfigs/cleffa.js';
-import Two from './deviceConfigs/two.js';
-import One from './deviceConfigs/one.js';
-import Sticks from './deviceConfigs/sticks.js';
-import Espeon from './deviceConfigs/espeon.js';
-import Gligar from './deviceConfigs/gligar.js';
-import Hoothoot from './deviceConfigs/hoothoot.js';
-import Girafarig from './deviceConfigs/girafarig.js';
-import Corsola from './deviceConfigs/corsola.js';
-import Donphan from './deviceConfigs/donphan.js';
-import Crobat from './deviceConfigs/crobat.js';
-import Twos from './deviceConfigs/twos.js';
+import CMFBuds2Plus from './deviceConfigs/CMFBuds2Plus.js';
+import CMFBudsPro2 from './deviceConfigs/CMFBudsPro2.js';
+import CMFBuds2A from './deviceConfigs/CMFBuds2A.js';
+import CMFBuds2 from './deviceConfigs/CMFBuds2.js';
+import BudsPro from './deviceConfigs/BudsPro.js';
+import CMFBuds from './deviceConfigs/CMFBuds.js';
+import NeckbandPro from './deviceConfigs/NeckbandPro.js';
+import NothingHeadphone1 from './deviceConfigs/NothingHeadphone1.js';
+import NothingEarA from './deviceConfigs/NothingEarA.js';
+import NothingEarOpen from './deviceConfigs/NothingEarOpen.js';
+import Ear2 from './deviceConfigs/Ear2.js';
+import NothingEar1 from './deviceConfigs/NothingEar1.js';
+import EarStick from './deviceConfigs/EarStick.js';
+import NothingEar from './deviceConfigs/NothingEar.js';
 
 export const NothingBudsModelList = [
-    Elekid,
-    Flaaffy,
-    Cleffa,
-    Two,
-    One,
-    Sticks,
-    Espeon,
-    Gligar,
-    Hoothoot,
-    Girafarig,
-    Corsola,
-    Donphan,
-    Crobat,
-    Twos,
+    CMFBuds2Plus,
+    CMFBudsPro2,
+    CMFBuds2A,
+    CMFBuds2,
+    BudsPro,
+    CMFBuds,
+    NeckbandPro,
+    NothingHeadphone1,
+    NothingEarA,
+    NothingEarOpen,
+    Ear2,
+    NothingEar1,
+    EarStick,
+    NothingEar,
 ];
 
 export const PayloadType = {

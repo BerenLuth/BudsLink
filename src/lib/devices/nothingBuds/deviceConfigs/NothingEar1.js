@@ -1,10 +1,9 @@
 'use strict';
 
-// Nothing Ear (1)
 export default {
     modelId: 'B181',
-    name: 'Nothing Ear (1)',
-    pattern: /.*Nothing\s+Ear\s*\(1\).*/i,
+    name: 'Nothing ear (1)',
+    pattern: /^.*Nothing ear \(1\)$/,
 
     noUTCTimeUpdate: true,
 

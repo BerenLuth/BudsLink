@@ -1,10 +1,9 @@
 'use strict';
 
-// CMF Buds 2
 export default {
     modelId: 'B179',
     name: 'CMF Buds 2',
-    pattern: /.*CMF\s+Buds\s+2(?!\s*(Plus|Pro|a)).*/i,
+    pattern: /^.*CMF Buds 2$/,
 
     batteryLR: true,
     batteryCase: true,

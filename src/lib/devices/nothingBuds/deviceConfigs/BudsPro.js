@@ -1,10 +1,9 @@
 'use strict';
 
-// CMF Buds Pro
 export default {
     modelId: 'B163',
-    name: 'CMF Buds Pro',
-    pattern: /.*CMF\s+Buds\s+Pro.*/i,
+    name: 'Buds Pro',
+    pattern: /^.*CMF Buds Pro$/,
 
     batteryLR: true,
     batteryCase: true,

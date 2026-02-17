@@ -1,10 +1,9 @@
 'use strict';
 
-// CMF Neckband Pro
 export default {
     modelId: 'B164',
-    name: 'CMF Neckband Pro',
-    pattern: /.*CMF\s+Neckband\s+Pro.*/i,
+    name: 'Neckband Pro',
+    pattern: /^.*CMF Neckband Pro$/,
 
     batterySingle: true,
 

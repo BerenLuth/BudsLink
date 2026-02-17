@@ -1,10 +1,9 @@
 'use strict';
 
-// Nothing Ear A
 export default {
     modelId: 'B162',
     name: 'Nothing Ear (a)',
-    pattern: /.*Nothing\s+Ear\s*\(a\).*/i,
+    pattern: /^.*Nothing Ear \(a\)$/,
 
     batteryLR: true,
     batteryCase: true,

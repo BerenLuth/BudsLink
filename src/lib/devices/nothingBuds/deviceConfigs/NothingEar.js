@@ -2,11 +2,11 @@
 
 export default {
     modelId: 'B171',
-    name: 'Ear',
+    name: 'Nothing Ear',
+    pattern: /^.*Nothing Ear$/,
 
     batteryLR: true,
     batteryCase: true,
-    pattern: /.*\bEar\b.*/i,
 
     eqPreset: {
         balanced: 0x00,
