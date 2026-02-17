@@ -153,32 +153,3 @@ export const BatteryType = {
     SINGLE: 0x06,
 };
 
-export const EqPreset1 = {
-    BALANCED: 0,
-    VOICE: 1,
-    MORE_TREBLE: 2,
-    MORE_BASS: 3,
-    CUSTOM: 5,
-    ADVANCE: 5,
-};
-
-export const EqPreset2 = {
-    DIRAC: 0,
-    ROCK: 1,
-    ELECTRONIC: 2,
-    POP: 3,
-    ENHANCE_VOCALS: 4,
-    CLASSICAL: 5,
-    CUSTOM: 6,
-};
-
-export const EqPreset3 = {
-    DIRAC: 7,
-    ROCK: 1,
-    ELECTRONIC: 2,
-    POP: 3,
-    ENHANCE_VOCALS: 4,
-    CLASSICAL: 5,
-    CUSTOM: 6,
-};
-
