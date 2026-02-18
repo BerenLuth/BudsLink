@@ -32,6 +32,8 @@ export default {
 
     lowLatencyMode: true,
     ring: true,
+    dualConnection: true,
+    dualConnectionReboot: true,
 
     gestureOptions: {
         device: {

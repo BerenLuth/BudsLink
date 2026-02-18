@@ -10,9 +10,9 @@ export default {
 
     eqPreset: {
         dirac: 0x00,
+        pop: 0x03,
         rock: 0x01,
         electronic: 0x02,
-        pop: 0x03,
         enhance_vocals: 0x04,
         classical: 0x05,
         custom: 0x06,
@@ -24,7 +24,6 @@ export default {
     noiseControl: {
         off: {byte: 0x05},
         transparency: {byte: 0x07},
-
         noiseCancellation: {
             levels: {
                 high: 0x01,
@@ -37,8 +36,10 @@ export default {
 
     inEarDetection: false,
     lowLatencyMode: true,
-    earTipTest: false,
+    earTipTest: true,
     ring: true,
+    dualConnection: true,
+    dualConnectionReboot: false,
 
     gestureOptions: {
         device: {

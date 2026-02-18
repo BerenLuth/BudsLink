@@ -9,10 +9,9 @@ export default {
     batteryCase: true,
 
     eqPreset: {
-        dirac: 0x00,
+        pop: 0x03,
         rock: 0x01,
         electronic: 0x02,
-        pop: 0x03,
         enhance_vocals: 0x04,
         classical: 0x05,
         custom: 0x06,
@@ -39,6 +38,8 @@ export default {
     lowLatencyMode: true,
     earTipTest: true,
     ring: true,
+    dualConnection: true,
+    dualConnectionReboot: false,
 
     gestureOptions: {
         device: {
@@ -55,6 +56,7 @@ export default {
 
             actions: {
                 'no-action': [0x01],
+                'play-pause': [0x02],
                 'skip-back': [0x08],
                 'skip-forward': [0x09],
                 'voice-assistant': [0x0B],

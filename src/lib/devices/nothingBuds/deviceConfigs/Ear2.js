@@ -36,6 +36,8 @@ export default {
     lowLatencyMode: true,
     earTipTest: true,
     ring: true,
+    dualConnection: true,
+    dualConnectionReboot: true,
 
     gestureOptions: {
         device: {

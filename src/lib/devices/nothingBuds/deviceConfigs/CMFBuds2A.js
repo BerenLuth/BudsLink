@@ -11,9 +11,9 @@ export default {
 
     eqPreset: {
         dirac: 0x07,
+        pop: 0x03,
         rock: 0x01,
         electronic: 0x02,
-        pop: 0x03,
         enhance_vocals: 0x04,
         classical: 0x05,
         custom: 0x06,
@@ -30,6 +30,8 @@ export default {
 
     lowLatencyMode: true,
     ring: true,
+    dualConnection: true,
+    dualConnectionReboot: false,
 
     gestureOptions: {
         device: {

@@ -31,6 +31,8 @@ export default {
     inEarDetection: true,
     lowLatencyMode: true,
     ring: true,
+    dualConnection: false,
+    dualConnectionReboot: false,
 
     gestureOptions: {
         device: {

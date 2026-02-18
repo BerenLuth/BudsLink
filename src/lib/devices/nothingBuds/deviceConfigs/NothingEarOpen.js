@@ -14,7 +14,6 @@ export default {
         more_treble: 0x02,
         more_bass: 0x03,
         custom: 0x05,
-        advance: 0x06,
     },
 
     lowLatencyMode: true,

@@ -37,6 +37,8 @@ export default {
     lowLatencyMode: true,
     earTipTest: true,
     ring: true,
+    dualConnection: true,
+    dualConnectionReboot: false,
 
     gestureOptions: {
         device: {
@@ -58,12 +60,14 @@ export default {
                 'voice-assistant': [0x0B],
                 'volume-up': [0x12],
                 'volume-down': [0x13],
+                'mic-mute': [0x1D],
+                'new-reporter': [0x21],
                 'noise-control': [0x0A, 0x14, 0x15, 0x16],
             },
         },
         gestures: {
             double: {
-                type: 'pinch',
+                type: 'press',
                 actions: [
                     'skip-back',
                     'skip-forward',
@@ -71,29 +75,34 @@ export default {
                 ],
             },
             triple: {
-                type: 'pinch',
+                type: 'press',
                 actions: [
                     'skip-back',
                     'skip-forward',
                     'voice-assistant',
+                    'new-reporter',
+                    'no-action',
                 ],
             },
             actionAndHold: {
-                type: 'pinch',
+                type: 'press',
                 actions: [
                     'noise-control',
                     'volume-up',
                     'volume-down',
                     'voice-assistant',
+                    'new-reporter',
+                    'no-action',
                 ],
             },
             doubleActionAndHold: {
-                type: 'pinch',
+                type: 'press',
                 actions: [
                     'noise-control',
                     'volume-up',
                     'volume-down',
                     'voice-assistant',
+                    'new-reporter',
                     'no-action',
                 ],
             },
