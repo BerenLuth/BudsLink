@@ -297,60 +297,71 @@ export const NothingBudsDevice = GObject.registerClass({
         if (!nc)
             return;
 
+        let buttonIndex = 1;
+        this._ancToggleMap = {};
         this._config.toggle1Title = _('Noise Control');
 
-        let buttonIndex = 1;
-
-        if (nc.off) {
-            this._config[`toggle1Button${buttonIndex}Icon`] = 'bbm-anc-off-symbolic.svg';
-            this._config[`toggle1Button${buttonIndex}Name`] = _('Off');
+        const addToggle = (type, bytes, icon, name) => {
+            this._config[`toggle1Button${buttonIndex}Icon`] = icon;
+            this._config[`toggle1Button${buttonIndex}Name`] = name;
+            this._ancToggleMap[buttonIndex] = {type, bytes};
             buttonIndex++;
-        }
+        };
+
+        if (nc.off)
+            addToggle('off', [nc.off.byte], 'bbm-anc-off-symbolic.svg', _('Off'));
 
         if (nc.transparency) {
-            this._config[`toggle1Button${buttonIndex}Icon`] = 'bbm-transperancy-symbolic.svg';
-            this._config[`toggle1Button${buttonIndex}Name`] = _('Transparency');
-            buttonIndex++;
+            addToggle('transparency', [nc.transparency.byte],
+                'bbm-transperancy-symbolic.svg', _('Transparency'));
         }
 
+        let hasNcLevel = false;
         if (nc.noiseCancellation) {
-            this._config[`toggle1Button${buttonIndex}Icon`] = 'bbm-anc-on-symbolic.svg';
-            this._config[`toggle1Button${buttonIndex}Name`] = _('Noise Cancellation');
-            buttonIndex++;
+            let bytes = [];
+            this._ancRadioMap = {};
+            this._ancRadioReverse = {};
+
+            if (nc.noiseCancellation.levels) {
+                hasNcLevel = true;
+                const levelOrder = ['high', 'mid', 'low', 'adaptive'];
+                const levelsObj = nc.noiseCancellation.levels;
+                const validLevels = levelOrder.filter(l => l in levelsObj);
+                bytes = validLevels.map(level => levelsObj[level]);
+
+                validLevels.forEach((level, i) => {
+                    const index = i + 1;
+                    const byte = levelsObj[level];
+
+                    this._ancRadioMap[index] = byte;
+                    this._ancRadioReverse[byte] = index;
+                });
+
+                const levelNames = {
+                    high: _('High'),
+                    mid: _('Mid'),
+                    low: _('Low'),
+                    adaptive: _('Adaptive'),
+                };
+
+                this._config.box1RadioTitle = _('Noise Cancellation Level');
+                this._config.box1RadioButton = validLevels.map(l => levelNames[l]);
+            } else if (nc.noiseCancellation.byte != null) {
+                bytes = [nc.noiseCancellation.byte];
+            }
+
+            addToggle('noiseCancellation', bytes,
+                'bbm-anc-on-symbolic.svg', _('Noise Cancellation'));
         }
 
-        const levelsObj = nc.noiseCancellation?.levels;
-        const personalizeAnc = this._modelData.personalizeAnc;
-
-        this._config.optionsBox1 = [];
-
-        if (levelsObj)
+        if (hasNcLevel)
             this._config.optionsBox1.push('radio-button');
 
-        if (personalizeAnc)
+        if (this._modelData.personalizeAnc) {
             this._config.optionsBox1.push('check-button');
-
-        if (levelsObj) {
-            const levelOrder = ['high', 'mid', 'low', 'adaptive'];
-
-            this._config.box1RadioTitle = _('Noise Cancellation Level');
-
-            const levelNames = {
-                high: _('High'),
-                mid: _('Mid'),
-                low: _('Low'),
-                adaptive: _('Adaptive'),
-            };
-
-            this._config.box1RadioButton = levelOrder
-            .filter(level => level in levelsObj)
-            .map(level => levelNames[level]);
-        }
-
-        if (personalizeAnc)
             this._config.box1CheckButton = [_('Personalised ANC')];
+        }
     }
-
 
     _startConfiguration(battInfo) {
         const bat1level = battInfo.battery1Level  ?? 0;
@@ -406,97 +417,81 @@ export const NothingBudsDevice = GObject.registerClass({
     }
 
     updateNoiseControl(mode) {
-        const nc = this._modelData.noiseControl;
+        if (!this._ancToggleMap)
+            return;
 
+        const nc = this._modelData.noiseControl;
         let toggleIndex = 0;
         let isNcMode = false;
 
-        if (nc.off && mode === nc.off.byte) {
-            toggleIndex = 1;
-            isNcMode = false;
-        } else if (nc.transparency && mode === nc.transparency.byte) {
-            toggleIndex = 2;
-            isNcMode = false;
-        } else if (nc.noiseCancellation && mode === nc.noiseCancellation.byte) {
-            toggleIndex = nc.transparency ? 3 : 2;
-            isNcMode = true;
-        } else if (nc.noiseCancellation?.levels) {
-            const levelsObj = nc.noiseCancellation.levels;
-            const levelOrder = ['high', 'mid', 'low', 'adaptive'];
-            const levelIndex = levelOrder.findIndex(level => levelsObj[level] === mode);
-
-            if (levelIndex >= 0) {
-                toggleIndex = nc.transparency ? 3 : 2;
-                isNcMode = true;
-                this._props.box1RadioButtonState = levelIndex + 1;
+        for (const [index, {bytes}] of Object.entries(this._ancToggleMap)) {
+            if (bytes.includes(mode)) {
+                toggleIndex = Number(index);
+                if (this._ancToggleMap[toggleIndex]?.type === 'noiseCancellation')
+                    isNcMode = true;
+                break;
             }
         }
 
         this._props.toggle1State = toggleIndex;
 
-        if (isNcMode && (nc.noiseCancellation?.levels || this._modelData.personalizeAnc))
+        if (isNcMode && this._ancRadioReverse && this._ancRadioReverse[mode])
+            this._props.box1RadioButtonState = this._ancRadioReverse[mode];
+        else
+            this._props.box1RadioButtonState = 0;
+
+        if (isNcMode && (nc?.noiseCancellation?.levels || this._modelData.personalizeAnc))
             this._props.optionsBoxVisible = 1;
         else
             this._props.optionsBoxVisible = 0;
-
 
         this.dataHandler?.setProps(this._props);
     }
 
     _toggle1ButtonClicked(index) {
-        const nc = this._modelData.noiseControl;
-        if (!nc)
+        if (!this._ancToggleMap)
             return;
 
         let ancMode = null;
-        const buttonOrder = [];
+        const toggle = this._ancToggleMap[index];
+        if (!toggle)
+            return;
 
         this._props.toggle1State = index;
 
-        if (nc.off)
-            buttonOrder.push({type: 'off', byte: nc.off.byte});
+        if (toggle.type === 'noiseCancellation') {
+            const boxVisible = toggle.bytes.length > 1 || this._modelData.personalizeAnc;
+            this._props.optionsBoxVisible = boxVisible ? 1 : 0;
 
-        if (nc.transparency)
-            buttonOrder.push({type: 'transparency', byte: nc.transparency.byte});
-
-        if (nc.noiseCancellation)
-            buttonOrder.push({type: 'noiseCancellation', byte: nc.noiseCancellation.byte ?? null});
-
-        if (index > 0 && index <= buttonOrder.length) {
-            const btn = buttonOrder[index - 1];
-            this._props.optionsBoxVisible = btn.type === 'noiseCancellation' ? 1 : 0;
-            this._props.toggle1State = index;
-            this.dataHandler?.setProps(this._props);
-
-            if (btn.type === 'noiseCancellation' && nc.noiseCancellation?.levels) {
-                const levelsObj = nc.noiseCancellation.levels;
-                const levelOrder = ['high', 'mid', 'low', 'adaptive'];
-                const firstLevel = levelOrder.find(lvl => lvl in levelsObj);
-                ancMode = levelsObj[firstLevel];
+            if (toggle.bytes.length > 1) {
+                const radioIndex = this._props.box1RadioButtonState;
+                const byte = this._ancRadioMap[radioIndex];
+                if (byte != null)
+                    ancMode = byte;
             } else {
-                ancMode = btn.byte;
+                ancMode = toggle.bytes[0];
             }
+        } else {
+            this._props.optionsBoxVisible = 0;
+            ancMode = toggle.bytes[0];
         }
 
-        if (ancMode !== null)
+        this.dataHandler?.setProps(this._props);
+
+        if (ancMode != null)
             this._nothingBudsSocket?.setNoiseControl(ancMode);
     }
 
     _box1RadioButtonStateChanged(index) {
-        const nc = this._modelData.noiseControl;
-        if (!nc || !nc.noiseCancellation?.levels)
+        if (!this._ancRadioMap)
             return;
 
-        const levelsObj = nc.noiseCancellation.levels;
-        const levelOrder = ['high', 'mid', 'low', 'adaptive'];
+        this._props.box1RadioButtonState = index;
+        this.dataHandler?.setProps(this._props);
 
-        if (index > 0 && index <= levelOrder.length) {
-            const level = levelOrder[index - 1];
-            if (level in levelsObj) {
-                const ancMode = levelsObj[level];
-                this._nothingBudsSocket?.setNoiseControl(ancMode);
-            }
-        }
+        const byte = this._ancRadioMap[index];
+        if (byte != null)
+            this._nothingBudsSocket?.setNoiseControl(byte);
     }
 
     _box1CheckButton1StateChanged(state) {
