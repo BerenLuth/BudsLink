@@ -41,6 +41,12 @@ export const NothingBudsModelList = [
 ];
 
 export const PayloadType = {
+    SERIAL_GET: 0xC006,
+    SERIAL_RET: 0x4006,
+
+    FIRMWARE_GET: 0xC042,
+    FIRMWARE_NTFY: 0x4042,
+
     DEVICE_MODEL_GET: 0xC01C,
     DEVICE_MODEL_RET: 0x401C,
 
@@ -94,9 +100,6 @@ export const PayloadType = {
     LATENCY_GET: 0xC041,
     LATENCY_SET: 0xF040,
     LATENCY_NTFY: 0x4041,
-
-    FIRMWARE_GET: 0xC042,
-    FIRMWARE_NTFY: 0x4042,
 
     RING_SET: 0xF002,
     EAR_FIT_TEST_START: 0xF014,

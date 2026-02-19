@@ -132,15 +132,7 @@ class NothingBudsSocket extends SocketHandler {
     }
 
     postConnectInitialization() {
-        this._sendPacket(PayloadType.DEVICE_MODEL_GET);
-
-        this._modelFallbackTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 2, () => {
-            if (!this._modelInitialized)
-                this._getModelByName();
-
-            this._modelFallbackTimeoutId = null;
-            return GLib.SOURCE_REMOVE;
-        });
+        this._onPostConnectInitialization();
     }
 
     _parseData(resp) {
@@ -209,6 +201,25 @@ class NothingBudsSocket extends SocketHandler {
                 this._initTimeoutId = null;
                 return GLib.SOURCE_REMOVE;
             });
+        });
+    }
+
+    async _onPostConnectInitialization() {
+        this._getSerialInfo();
+        await this._wait();
+
+        this._getFirmwareInfo();
+        await this._wait();
+
+        this._getDeviceModelId();
+        await this._wait();
+
+        this._modelFallbackTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 2, () => {
+            if (!this._modelInitialized)
+                this._getModelByName();
+
+            this._modelFallbackTimeoutId = null;
+            return GLib.SOURCE_REMOVE;
         });
     }
 
@@ -309,9 +320,19 @@ class NothingBudsSocket extends SocketHandler {
         this._onModelInitialized(modelData);
     }
 
+    _getSerialInfo() {
+        this._log.info('Request SerialInfo');
+        this._sendPacket(PayloadType.SERIAL_GET);
+    }
+
     _getFirmwareInfo() {
         this._log.info('Request FirmwareInfo');
         this._sendPacket(PayloadType.FIRMWARE_GET);
+    }
+
+    _getDeviceModelId() {
+        this._log.info('Request DeviceModelId');
+        this._sendPacket(PayloadType.DEVICE_MODEL_GET);
     }
 
     _parseFirmwareInfo(payload) {
