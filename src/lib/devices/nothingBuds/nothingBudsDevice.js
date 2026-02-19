@@ -103,8 +103,7 @@ export const NothingBudsDevice = GObject.registerClass({
             },
 
             ...this._modelData.eqPreset && {
-                'eq-preset': this._modelData.eqListeningModeType ? this._modelData.eqPreset.dirac
-                    : this._modelData.eqPreset.balanced,
+                'eq-preset': Object.values(this._modelData.eqPreset)[0],
             },
 
             ...this._modelData.eqPreset?.custom !== undefined && {
