@@ -36,46 +36,54 @@ class NothingBudsSocket extends SocketHandler {
         this._seq = 0;
         this._modelInitialized = false;
 
+        this._halfPacket = null;
+
         this._callbacks = callbacks;
 
         this.startSocket();
     }
 
     _decode(buffer) {
+        if (this._halfPacket && this._halfPacket.length > 0) {
+            const merged = new Uint8Array(this._halfPacket.length + buffer.length);
+            merged.set(this._halfPacket, 0);
+            merged.set(buffer, this._halfPacket.length);
+            buffer = merged;
+            this._halfPacket = null;
+        }
+
         let offset = 0;
-        while (buffer.length - offset >= HEADER_LEN) {
-            const start = buffer.indexOf(HEADER_MAGIC[0], offset);
+        const MIN_PACKET = HEADER_LEN + CRC_LEN;
+
+        while (buffer.length - offset >= 1) {
+            const start = buffer.indexOf(0x55, offset);
             if (start === -1)
                 return;
 
+            offset = start;
 
-            if (start > offset)
-                offset = start;
-
-
-            if (buffer.length - offset < HEADER_LEN)
-                break;
-
-
-            if (buffer[offset + 1] !== HEADER_MAGIC[1] || buffer[offset + 2] !== HEADER_MAGIC[2]) {
-                offset += 1;
-                continue;
+            if (buffer.length - offset < MIN_PACKET) {
+                this._halfPacket = buffer.slice(offset);
+                return;
             }
 
             const payloadLen = buffer[offset + 5];
             const totalLen = HEADER_LEN + payloadLen + CRC_LEN;
 
-            if (buffer.length - offset < totalLen)
-                break;
-
+            if (buffer.length - offset < totalLen) {
+                this._halfPacket = buffer.slice(offset);
+                return;
+            }
 
             const frame = buffer.slice(offset, offset + totalLen);
 
             const crcExpected = frame[totalLen - 2] | frame[totalLen - 1] << 8;
-            const crcActual = crc16Ansi(frame.slice(0, totalLen - CRC_LEN));
+
+            const crcActual =
+            crc16Ansi(frame.slice(0, totalLen - CRC_LEN));
 
             if (crcActual !== crcExpected) {
-                offset += HEADER_LEN;
+                offset += 1;
                 continue;
             }
 
