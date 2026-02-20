@@ -56,10 +56,11 @@ export function openLogWindow(gtxt) {
         logWindow = new LogWindow(gtxt);
 
         setLiveLogSink(line => {
-            logWindow.appendLine(line);
+            logWindow?.appendLine(line);
         });
 
         logWindow.connect('close-request', () => {
+            setLiveLogSink(null);
             logWindow = null;
             return false;
         });
