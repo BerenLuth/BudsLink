@@ -27,28 +27,25 @@ export const RingMyBudsRow = GObject.registerClass({
         this._status = 'stopped';
         this._statusLeft = 'stopped';
 
-        if (!dual) {
-            this._buttonContent = new Adw.ButtonContent({
-                icon_name: 'bbm-play-symbolic',
-                label: _('Play'),
-            });
+        this._buttonContent = new Adw.ButtonContent({
+            icon_name: 'bbm-play-symbolic',
+            label: _('Play'),
+        });
 
-            this._button = new Gtk.Button({
-                valign: Gtk.Align.CENTER,
-                child: this._buttonContent,
-                css_classes: ['suggested-action'],
-            });
+        this._button = new Gtk.Button({
+            valign: Gtk.Align.CENTER,
+            child: this._buttonContent,
+            css_classes: ['suggested-action'],
+        });
 
-            this.add_suffix(this._button);
-            this.activatable_widget = this._button;
+        this._button.connect('clicked', () => {
+            if (this.status === 'playing')
+                this._stop();
+            else
+                this._confirmAndPlay();
+        });
 
-            this._button.connect('clicked', () => {
-                if (this.status === 'playing')
-                    this._stop();
-                else
-                    this._confirmAndPlay();
-            });
-        } else {
+        if (dual) {
             this._container = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL, spacing: 18});
 
             this._buttonContentLeft = new Adw.ButtonContent({
@@ -66,20 +63,10 @@ export const RingMyBudsRow = GObject.registerClass({
             leftBox.append(leftLabel);
             leftBox.append(this._buttonLeft);
 
-            this._buttonContentRight = new Adw.ButtonContent({
-                icon_name: 'bbm-play-symbolic',
-                label: _('Play'),
-            });
-            this._buttonRight = new Gtk.Button({
-                valign: Gtk.Align.CENTER,
-                child: this._buttonContentRight,
-                css_classes: ['suggested-action'],
-            });
-
             const rightLabel = new Gtk.Label({label: 'R', xalign: 0, css_classes: ['heading']});
             const rightBox = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL, spacing: 6});
             rightBox.append(rightLabel);
-            rightBox.append(this._buttonRight);
+            rightBox.append(this._button);
 
             this._container.append(leftBox);
             this._container.append(rightBox);
@@ -90,71 +77,57 @@ export const RingMyBudsRow = GObject.registerClass({
                 if (this.statusLeft === 'playing')
                     this._stop('left');
                 else
-                    this._confirmAndPlay('left');
+                    this._confirmAndPlay(true);
             });
-
-            this._buttonRight.connect('clicked', () => {
-                if (this.status === 'playing')
-                    this._stop('right');
-                else
-                    this._confirmAndPlay('right');
-            });
+        } else {
+            this.add_suffix(this._button);
+            this.activatable_widget = this._button;
         }
+    }
+
+    _updateStatus(state, isLeft = false) {
+        const _ = this._gettext;
+        const buttonContent = isLeft ? this._buttonContentLeft : this._buttonContent;
+
+        if (state === 'playing') {
+            buttonContent.icon_name = 'bbm-stop-symbolic';
+            buttonContent.label = _('Stop');
+        } else if (state === 'stopped') {
+            buttonContent.icon_name = 'bbm-play-symbolic';
+            buttonContent.label = _('Play');
+        } else {
+            return;
+        }
+
+        if (isLeft)
+            this._statusLeft = state;
+        else
+            this._status = state;
     }
 
     get status() {
         return this._status;
     }
 
-    set status(value) {
-        if (this._status === value)
+    set status(state) {
+        if (this._status === state)
             return;
-        this._status = value;
-        if (!this._dual)
-            this._updateButton('right');
-        this.notify('status');
+
+        this._updateStatus(state);
     }
 
     get statusLeft() {
         return this._statusLeft;
     }
 
-    set statusLeft(value) {
-        if (this._statusLeft === value)
+    set statusLeft(state) {
+        if (this._statusLeft === state)
             return;
-        this._statusLeft = value;
-        if (this._dual)
-            this._updateButton('left');
-        this.notify('status-left');
+
+        this._updateStatus(state, true);
     }
 
-    _updateButton(side = 'right') {
-        const _ = this._gettext;
-
-        if (!this._dual && side === 'right') {
-            this._buttonContent.icon_name =
-                this._status === 'playing' ? 'bbm-stop-symbolic' : 'bbm-play-symbolic';
-
-            this._buttonContent.label = this._status === 'playing' ? _('Stop') : _('Play');
-        }
-
-        if (this._dual) {
-            if (side === 'right') {
-                this._buttonContentRight.icon_name =
-                    this._status === 'playing' ? 'bbm-stop-symbolic' : 'bbm-play-symbolic';
-
-                this._buttonContentRight.label = this._status === 'playing' ? _('Stop') : _('Play');
-            } else if (side === 'left') {
-                this._buttonContentLeft.icon_name =
-                    this._statusLeft === 'playing' ? 'bbm-stop-symbolic' : 'bbm-play-symbolic';
-
-                this._buttonContentLeft.label =
-                    this._statusLeft === 'playing' ? _('Stop') : _('Play');
-            }
-        }
-    }
-
-    _confirmAndPlay(side = 'right') {
+    _confirmAndPlay(isLeft = false) {
         const _ = this._gettext;
         const dialog = new Adw.AlertDialog({
             heading: _('Continue?'),
@@ -174,23 +147,19 @@ export const RingMyBudsRow = GObject.registerClass({
 
         dialog.connect('response', (_dialog, response) => {
             if (response === 'continue')
-                this._play(side);
+                this._play(isLeft);
         });
 
         dialog.present(this.get_root());
     }
 
-    _play(side = 'right') {
-        if (side === 'left')
-            this.statusLeft = 'playing';
-        else
-            this.status = 'playing';
+    _play(isLeft) {
+        this._updateStatus('playing', isLeft);
+        this.notify(isLeft ? 'status-left' : 'status');
     }
 
-    _stop(side = 'right') {
-        if (side === 'left')
-            this.statusLeft = 'stopped';
-        else
-            this.status = 'stopped';
+    _stop(isLeft) {
+        this._updateStatus('stopped', isLeft);
+        this.notify(isLeft ? 'status-left' : 'status');
     }
 });
