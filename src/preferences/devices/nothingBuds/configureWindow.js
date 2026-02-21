@@ -9,6 +9,7 @@ import {DropDownRowWidget} from './../../widgets/dropDownRowWidget.js';
 import {SliderRowWidget} from './../../widgets/sliderRowWidget.js';
 import {CheckBoxesRowWidget} from './../../widgets/checkBoxesRowWidget.js';
 import {IconSelectorWidget} from './../../widgets/iconSelectorWidget.js';
+import {RingMyBudsRow} from './../../widgets/ringMyBudsRow.js';
 import {EqualizerWidget} from './../../widgets/equalizerWidget.js';
 import {
     NothingBudsModelList
@@ -107,7 +108,6 @@ export const ConfigureWindow = GObject.registerClass({
         this._addMiscSetting(_);
         this._addGestureControls(_);
 
-
         settings.connect('changed::nothing-buds-list', () => {
             const updatedList = settings.get_strv('nothing-buds-list').map(JSON.parse);
             this._settingsItems = updatedList.find(info => info.path === devicePath);
@@ -134,6 +134,23 @@ export const ConfigureWindow = GObject.registerClass({
 
             if (this._modelData?.inEarDetection)
                 this._inEarSwitch.active = this._settingsItems['inear-enable'];
+        });
+
+        this.connect('close-request', () => {
+            if (!this._modelData?.ring)
+                return false;
+
+            const ringState = this._settingsItems?.['ring-state'];
+            if (ringState === 'playing')
+                this._updateGsettings('ring-state', 'stopped');
+
+            if (!this._modelData.ringLegacy && !this._modelData.batterySingle) {
+                const ringStateLeft = this._settingsItems?.['ring-state-left'];
+                if (ringStateLeft === 'playing')
+                    this._updateGsettings('ring-state-left', 'stopped');
+            }
+
+            return false;
         });
     }
 
@@ -269,10 +286,12 @@ export const ConfigureWindow = GObject.registerClass({
 
     _addMiscSetting(_) {
         let miscGroup;
-        if (this._modelData?.lowLatencyMode || this._modelData?.inEarDetection) {
+        if (this._modelData?.lowLatencyMode || this._modelData?.inEarDetection ||
+                this._modelData?.ring) {
             miscGroup = new Adw.PreferencesGroup({title: _('Features')});
             this._page.add(miscGroup);
         }
+
         if (this._modelData?.lowLatencyMode) {
             this._lowLatencySwitch = new Adw.SwitchRow({title: _('Enable low latency mode')});
 
@@ -282,6 +301,7 @@ export const ConfigureWindow = GObject.registerClass({
 
             miscGroup.add(this._lowLatencySwitch);
         }
+
         if (this._modelData?.inEarDetection) {
             this._inEarSwitch = new Adw.SwitchRow({
                 title: _('Enable in ear detection'),
@@ -292,6 +312,24 @@ export const ConfigureWindow = GObject.registerClass({
             });
 
             miscGroup.add(this._inEarSwitch);
+        }
+
+        if (this._modelData?.ring) {
+            const dual = !this._modelData.ringLegacy && !this._modelData.batterySingle;
+
+            this._ringBudsRow = new RingMyBudsRow(_, {dual});
+
+            this._ringBudsRow.connect('notify::status', () => {
+                this._updateGsettings('ring-state', this._ringBudsRow.status);
+            });
+
+            if (dual) {
+                this._ringBudsRow.connect('notify::status-left', () => {
+                    this._updateGsettings('ring-state-left', this._ringBudsRow.statusLeft);
+                });
+            }
+
+            miscGroup.add(this._ringBudsRow);
         }
     }
 

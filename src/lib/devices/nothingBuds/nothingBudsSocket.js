@@ -698,6 +698,22 @@ class NothingBudsSocket extends SocketHandler {
         this._sendPacket(PayloadType.IN_EAR_SET, payload);
     }
 
+    setRingMyBuds(state, isLeft) {
+        this._log.info('Set RingMyBuds');
+        const payload = [];
+
+        if (!this._modelData.ringLegacy) {
+            if (this._modelData.batterySingle)
+                payload.push(0x06);
+            else
+                payload.push(isLeft ? 0x02 : 0x03);
+        }
+
+        payload.push(state === 'playing' ? 0x01 : 0x00);
+
+        this._sendPacket(PayloadType.RING_SET, payload);
+    }
+
     _getGestures() {
         this._log.info('Request Gestures');
         this._sendPacket(PayloadType.GESTURES_GET);

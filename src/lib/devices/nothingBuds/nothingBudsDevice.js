@@ -123,6 +123,13 @@ export const NothingBudsDevice = GObject.registerClass({
                 'inear-enable': false,
             },
 
+            ...this._modelData.ring && {
+                'ring-state': 'stopped',
+                ...!this._modelData.ringLegacy && !this._modelData.batterySingle && {
+                    'ring-state-left': 'stopped',
+                },
+            },
+
             ...this._modelData.gestureOptions && {
                 'gestures': this._createDefaultGestures(),
             },
@@ -163,6 +170,12 @@ export const NothingBudsDevice = GObject.registerClass({
 
         if (this._modelData.inEarDetection)
             this._inEar = this._settingsItems['inear-enable'];
+
+        if (this._modelData.ring) {
+            this._ringState = false;
+            if (!this._modelData.ringLegacy && !this._modelData.batterySingle)
+                this._ringStateLeft = false;
+        }
 
         if (this._modelData.gestureOptions)
             this._gestures = this._settingsItems['gestures'];
@@ -233,6 +246,22 @@ export const NothingBudsDevice = GObject.registerClass({
             if (this._inEar !== enable) {
                 this._inEar = enable;
                 this._setInEar(enable);
+            }
+        }
+
+        if (this._modelData.ring) {
+            const state = this._settingsItems['ring-state'];
+            if (this._ringState !== state) {
+                this._ringState = state;
+                this._setRingMyBuds(state);
+            }
+
+            if (!this._modelData.ringLegacy && !this._modelData.batterySingle) {
+                const stateLeft = this._settingsItems['ring-state-left'];
+                if (this._ringStateLeft !== stateLeft) {
+                    this._ringStateLeft = stateLeft;
+                    this._setRingMyBuds(stateLeft, true);
+                }
             }
         }
 
@@ -702,6 +731,10 @@ export const NothingBudsDevice = GObject.registerClass({
             this._settingsItems['gestures'] = validSlots;
             this._updateGsettings();
         }
+    }
+
+    _setRingMyBuds(state, isLeft = false) {
+        this._nothingBudsSocket?.setRingMyBuds(state, isLeft);
     }
 
     _setGesture(slot) {
