@@ -204,15 +204,8 @@ class NothingBudsSocket extends SocketHandler {
         });
     }
 
-    async _onPostConnectInitialization() {
-        this._getSerialInfo();
-        await this._wait();
-
-        this._getFirmwareInfo();
-        await this._wait();
-
+    _onPostConnectInitialization() {
         this._getDeviceModelId();
-        await this._wait();
 
         this._modelFallbackTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 2, () => {
             if (!this._modelInitialized)
@@ -229,6 +222,14 @@ class NothingBudsSocket extends SocketHandler {
         this._modelData = modelData;
         this._callbacks?.modelIntialized?.(modelData);
 
+        this._getBattery();
+        await this._wait();
+
+        if (modelData.eqPreset) {
+            this._getEqPreset();
+            await this._wait();
+        }
+
         this._getFirmwareInfo();
         await this._wait();
 
@@ -237,26 +238,8 @@ class NothingBudsSocket extends SocketHandler {
             await this._wait();
         }
 
-        this._getBattery();
-        await this._wait();
-
-        if (modelData.noiseControl) {
-            this._getNoiseControl();
-            await this._wait();
-        }
-
-        if (modelData.personalizeAnc) {
-            this._getPersonalizedAnc();
-            await this._wait();
-        }
-
-        if (modelData.eqPreset) {
-            this._getEqPreset();
-            await this._wait();
-        }
-
-        if (modelData.bassEnhanceLevel) {
-            this._getEnhancedBass();
+        if (modelData.inEarDetection) {
+            this._getInEar();
             await this._wait();
         }
 
@@ -265,13 +248,23 @@ class NothingBudsSocket extends SocketHandler {
             await this._wait();
         }
 
-        if (modelData.inEarDetection) {
-            this._getInEar();
+        if (modelData.personalizeAnc) {
+            this._getPersonalizedAnc();
             await this._wait();
         }
 
         if (modelData.gestureOptions) {
             this._getGestures();
+            await this._wait();
+        }
+
+        if (modelData.noiseControl) {
+            this._getNoiseControl();
+            await this._wait();
+        }
+
+        if (modelData.bassEnhanceLevel) {
+            this._getEnhancedBass();
             await this._wait();
         }
     }
