@@ -161,7 +161,6 @@ export const NothingBudsDevice = GObject.registerClass({
         if (this._modelData.lowLatencyMode)
             this._lowlatency = this._settingsItems['lowlatency'];
 
-
         if (this._modelData.inEarDetection)
             this._inEar = this._settingsItems['inear-enable'];
 
@@ -323,18 +322,12 @@ export const NothingBudsDevice = GObject.registerClass({
 
             if (nc.noiseCancellation.levels) {
                 hasNcLevel = true;
-                const levelOrder = ['high', 'mid', 'low', 'adaptive'];
+                const levelOrder = ['low', 'mid', 'high', 'adaptive'];
                 const levelsObj = nc.noiseCancellation.levels;
                 const validLevels = levelOrder.filter(l => l in levelsObj);
-                bytes = validLevels.map(level => levelsObj[level]);
+                const labels = [];
 
-                validLevels.forEach((level, i) => {
-                    const index = i + 1;
-                    const byte = levelsObj[level];
-
-                    this._ancRadioMap[index] = byte;
-                    this._ancRadioReverse[byte] = index;
-                });
+                this._config.box1RadioTitle = _('Noise Cancellation Level');
 
                 const levelNames = {
                     high: _('High'),
@@ -343,7 +336,19 @@ export const NothingBudsDevice = GObject.registerClass({
                     adaptive: _('Adaptive'),
                 };
 
-                this._config.box1RadioTitle = _('Noise Cancellation Level');
+                validLevels.forEach((level, i) => {
+                    const index = i + 1;
+                    labels.push(levelNames[level]);
+                    const byte = levelsObj[level];
+                    bytes.push(byte);
+                    this._ancRadioMap[index] = byte;
+                    this._ancRadioReverse[byte] = index;
+                });
+
+                this._log.info(`ANC level labels: ${JSON.stringify(labels)}`);
+                this._log.info(`ANC level bytes: ${JSON.stringify(bytes)}`);
+
+
                 this._config.box1RadioButton = validLevels.map(l => levelNames[l]);
             } else if (nc.noiseCancellation.byte != null) {
                 bytes = [nc.noiseCancellation.byte];
@@ -434,6 +439,12 @@ export const NothingBudsDevice = GObject.registerClass({
 
         this._props.toggle1State = toggleIndex;
 
+        this._log.info(`isNcMode: ${isNcMode}`);
+        if (isNcMode) {
+            this._log.info(`this._ancRadioReverse: ${JSON.stringify(this._ancRadioReverse)}`);
+            this._log.info(`this._ancRadioReverse[mode] ${this._ancRadioReverse[mode]}`);
+        }
+
         if (isNcMode && this._ancRadioReverse && this._ancRadioReverse[mode])
             this._props.box1RadioButtonState = this._ancRadioReverse[mode];
         else
@@ -443,6 +454,8 @@ export const NothingBudsDevice = GObject.registerClass({
             this._props.optionsBoxVisible = 1;
         else
             this._props.optionsBoxVisible = 0;
+
+        this._log.info(`this._props.box1RadioButtonState: ${this._props.box1RadioButtonState}`);
 
         this.dataHandler?.setProps(this._props);
     }
@@ -488,7 +501,11 @@ export const NothingBudsDevice = GObject.registerClass({
         this._props.box1RadioButtonState = index;
         this.dataHandler?.setProps(this._props);
 
+        this._log.info(`radio.index: ${index}`);
+
         const byte = this._ancRadioMap[index];
+        this._log.info(`radio.byte: ${byte}`);
+
         if (byte != null)
             this._nothingBudsSocket?.setNoiseControl(byte);
     }
@@ -609,7 +626,6 @@ export const NothingBudsDevice = GObject.registerClass({
 
         return slots;
     }
-
 
     _isValidGestureSlot(slot) {
         const opts = this._modelData.gestureOptions;

@@ -408,8 +408,32 @@ class NothingBudsSocket extends SocketHandler {
         this._callbacks?.updateBatteryProps?.(props);
     }
 
+    _buildNoiseControlByteList() {
+        this._noiseControlBytes = [];
+
+        const nc = this._modelData?.noiseControl;
+
+        if (nc.off?.byte != null)
+            this._noiseControlBytes.push(nc.off.byte);
+
+        if (nc.transparency?.byte != null)
+            this._noiseControlBytes.push(nc.transparency.byte);
+
+        if (nc.noiseCancellation) {
+            if (nc.noiseCancellation.levels) {
+                this._noiseControlBytes.push(
+                    ...Object.values(nc.noiseCancellation.levels)
+                );
+            } else if (nc.noiseCancellation.byte != null) {
+                this._noiseControlBytes.push(nc.noiseCancellation.byte);
+            }
+        }
+        this._log.info(`this._noiseControlBytes = ${this._noiseControlBytes}`);
+    }
+
     _getNoiseControl() {
         this._log.info('Request NoiseControl');
+        this._buildNoiseControlByteList();
         this._sendPacket(PayloadType.ANC_GET);
     }
 
@@ -419,6 +443,10 @@ class NothingBudsSocket extends SocketHandler {
             return;
 
         const mode = payload[1];
+
+        if (!this._noiseControlBytes?.includes(mode))
+            return;
+
         this._callbacks?.updateNoiseControl?.(mode);
     }
 
