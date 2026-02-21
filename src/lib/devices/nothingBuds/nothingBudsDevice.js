@@ -476,8 +476,6 @@ export const NothingBudsDevice = GObject.registerClass({
 
         if (isNcMode && this._ancRadioReverse && this._ancRadioReverse[mode])
             this._props.box1RadioButtonState = this._ancRadioReverse[mode];
-        else
-            this._props.box1RadioButtonState = 0;
 
         if (isNcMode && (nc?.noiseCancellation?.levels || this._modelData.personalizeAnc))
             this._props.optionsBoxVisible = 1;
