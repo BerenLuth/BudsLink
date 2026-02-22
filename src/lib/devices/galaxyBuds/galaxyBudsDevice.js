@@ -1,7 +1,7 @@
 'use strict';
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
-import {Gtxt as _} from '../../../appLibs/utils.js';
+import {gettext as _} from 'gettext';
 
 import {createLogger} from '../logger.js';
 import {getBluezDeviceProxy} from '../../bluezDeviceProxy.js';

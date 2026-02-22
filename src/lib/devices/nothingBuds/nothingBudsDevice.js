@@ -1,13 +1,12 @@
 'use strict';
 import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
-import {Gtxt as _} from '../../../appLibs/utils.js';
+import {gettext as _} from 'gettext';
 
 import {createLogger} from '../logger.js';
 import {buds2to1BatteryLevel, validateProperties, launchConfigureWindow} from '../deviceUtils.js';
 import {createConfig, createProperties, DataHandler} from '../../dataHandler.js';
 import {NothingBudsSocket} from './nothingBudsSocket.js';
-// import {} from './nothingBudsConfig.js';
 
 export const DeviceTypeNothingBuds = 'nothingBuds';
 
