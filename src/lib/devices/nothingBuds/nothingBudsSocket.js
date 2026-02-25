@@ -728,6 +728,7 @@ class NothingBudsSocket extends SocketHandler {
 
             slots.push({
                 device: payload[offset],
+                buttonId: payload[offset + 1],
                 type: payload[offset + 2],
                 action: payload[offset + 3],
             });
@@ -747,7 +748,7 @@ class NothingBudsSocket extends SocketHandler {
         const payload = [
             0x01,
             slot.device & 0xFF,
-            0x01,
+            slot.buttonId & 0xFF,
             slot.type & 0xFF,
             slot.action & 0xFF,
         ];

@@ -171,9 +171,9 @@ export const NothingBudsDevice = GObject.registerClass({
             this._inEar = this._settingsItems['inear-enable'];
 
         if (this._modelData.ring) {
-            this._ringState = false;
+            this._ringState = 'stopped';
             if (!this._modelData.ringLegacy && !this._modelData.batterySingle)
-                this._ringStateLeft = false;
+                this._ringStateLeft = 'stopped';
         }
 
         if (this._modelData.gestureOptions)
@@ -620,34 +620,31 @@ export const NothingBudsDevice = GObject.registerClass({
 
     _createDefaultGestures() {
         const opts = this._modelData.gestureOptions;
-        if (!opts)
+        const hex = opts?.default;
+        if (!hex)
             return [];
 
+        const bytes = [];
+
+        for (let i = 0; i < hex.length; i += 2)
+            bytes.push(parseInt(hex.substr(i, 2), 16));
+
+        const count = bytes[0];
         const slots = [];
-        const devices = Object.values(opts.device);
-        const {gestureTypes} = opts.mapping;
-        const {actions: actionMap} = opts.mapping;
 
-        for (const [gestureKey, gestureDef] of Object.entries(opts.gestures)) {
-            const typeByte = gestureTypes[gestureKey];
-            if (typeByte === undefined)
-                continue;
+        let offset = 1;
+        for (let i = 0; i < count; i++) {
+            if (offset + 4 > bytes.length)
+                break;
 
-            const actionKey = gestureDef.actions?.[0];
-            if (!actionKey)
-                continue;
+            slots.push({
+                device: bytes[offset],
+                buttonId: bytes[offset + 1],
+                type: bytes[offset + 2],
+                action: bytes[offset + 3],
+            });
 
-            const actionByte = actionMap[actionKey]?.[0];
-            if (actionByte === undefined)
-                continue;
-
-            for (const deviceByte of devices) {
-                slots.push({
-                    device: deviceByte,
-                    type: typeByte,
-                    action: actionByte,
-                });
-            }
+            offset += 4;
         }
 
         return slots;
@@ -658,16 +655,23 @@ export const NothingBudsDevice = GObject.registerClass({
         if (!opts)
             return false;
 
-        const {device, mapping, gestures} = opts;
+        const {slots, mapping, gestures} = opts;
 
-        const deviceValid = Object.values(device).includes(slot.device);
-        if (!deviceValid) {
-            this._log.info(`Unsupported gesture device byte: ${slot.device}`);
+        const slotDef = slots.find(s =>
+            s.device === slot.device &&
+            s.buttonId === slot.buttonId &&
+            mapping.gestureTypes[s.type] === slot.type
+        );
+
+        if (!slotDef) {
+            this._log.info(
+                `Unsupported slot device=${slot.device} button=${slot.buttonId} type=${slot.type}`
+            );
             return false;
         }
 
         const gestureKey = Object.entries(mapping.gestureTypes)
-        .find(([, v]) => v === slot.type)?.[0];
+            .find(([, v]) => v === slot.type)?.[0];
 
         if (!gestureKey || !gestures[gestureKey]) {
             this._log.info(`Unsupported gesture type byte: ${slot.type}`);
@@ -675,7 +679,7 @@ export const NothingBudsDevice = GObject.registerClass({
         }
 
         const actionKey = Object.entries(mapping.actions)
-        .find(([, values]) => values.includes(slot.action))?.[0];
+            .find(([, values]) => values.includes(slot.action))?.[0];
 
         if (!actionKey) {
             this._log.info(`Unsupported action byte: ${slot.action}`);
@@ -695,11 +699,19 @@ export const NothingBudsDevice = GObject.registerClass({
     _gestureSlotsEqual(a = [], b = []) {
         if (a.length !== b.length)
             return false;
-        return a.every((s, i) =>
-            s.device === b[i].device &&
-        s.type === b[i].type &&
-        s.action === b[i].action
-        );
+
+        const areEqual = a.every((slot, index) => {
+            const other = b[index];
+
+            const sameDevice = slot.device === other.device;
+            const sameButton = slot.buttonId === other.buttonId;
+            const sameType   = slot.type === other.type;
+            const sameAction = slot.action === other.action;
+
+            return sameDevice && sameButton && sameType && sameAction;
+        });
+
+        return areEqual;
     }
 
     _findGestureDiff(newSlots, oldSlots) {
@@ -707,8 +719,8 @@ export const NothingBudsDevice = GObject.registerClass({
             const old = oldSlots[i];
             const cur = newSlots[i];
 
-            if (!old || old.device !== cur.device || old.type !== cur.type ||
-                    old.action !== cur.action)
+            if (!old || old.device !== cur.device || old.buttonId !== cur.buttonId ||
+                    old.type !== cur.type || old.action !== cur.action)
                 return cur;
         }
         return null;
@@ -730,12 +742,12 @@ export const NothingBudsDevice = GObject.registerClass({
         }
     }
 
-    _setRingMyBuds(state, isLeft = false) {
-        this._nothingBudsSocket?.setRingMyBuds(state, isLeft);
-    }
-
     _setGesture(slot) {
         this._nothingBudsSocket?.setGesture(slot);
+    }
+
+    _setRingMyBuds(state, isLeft = false) {
+        this._nothingBudsSocket?.setRingMyBuds(state, isLeft);
     }
 
     _settingsButtonClicked() {

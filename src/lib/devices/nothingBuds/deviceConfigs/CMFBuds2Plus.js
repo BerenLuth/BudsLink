@@ -42,18 +42,24 @@ export default {
     dualConnectionReboot: false,
 
     gestureOptions: {
-        device: {
-            'left': 0x02,
-            'right': 0x03,
-        },
+        default: '080301020903010308030107160301090102010209020103080201071602010901',
+        slots: [
+            {group: 'left',  device: 0x02, buttonId: 0x01, type: 'double'},
+            {group: 'left',  device: 0x02, buttonId: 0x01, type: 'triple'},
+            {group: 'left',  device: 0x02, buttonId: 0x01, type: 'action-hold'},
+            {group: 'left',  device: 0x02, buttonId: 0x01, type: 'double-action-hold'},
+            {group: 'right', device: 0x03, buttonId: 0x01, type: 'double'},
+            {group: 'right', device: 0x03, buttonId: 0x01, type: 'triple'},
+            {group: 'right', device: 0x03, buttonId: 0x01, type: 'action-hold'},
+            {group: 'right', device: 0x03, buttonId: 0x01, type: 'double-action-hold'},
+        ],
         mapping: {
             gestureTypes: {
-                double: 0x02,
-                triple: 0x03,
-                actionAndHold: 0x07,
-                doubleActionAndHold: 0x09,
+                'double': 0x02,
+                'triple': 0x03,
+                'action-hold': 0x07,
+                'double-action-hold': 0x09,
             },
-
             actions: {
                 'no-action': [0x01],
                 'play-pause': [0x02],
@@ -66,7 +72,7 @@ export default {
             },
         },
         gestures: {
-            double: {
+            'double': {
                 type: 'tap',
                 actions: [
                     'play-pause',
@@ -76,7 +82,7 @@ export default {
                     'no-action',
                 ],
             },
-            triple: {
+            'triple': {
                 type: 'tap',
                 actions: [
                     'skip-back',
@@ -85,7 +91,7 @@ export default {
                     'no-action',
                 ],
             },
-            actionAndHold: {
+            'action-hold': {
                 type: 'tap',
                 actions: [
                     'noise-control',
@@ -93,7 +99,7 @@ export default {
                     'no-action',
                 ],
             },
-            doubleActionAndHold: {
+            'double-action-hold': {
                 type: 'tap',
                 actions: [
                     'volume-up',
@@ -104,10 +110,6 @@ export default {
             },
         },
         noiseControlModes: ['off', 'transparency', 'noise-cancellation'],
-        nonAssignable: {
-            singlePinch: ['call-answer'],
-            doublePinch: ['call-hangup', 'call-decline'],
-        },
     },
 
     albumArtIcon: 'earbuds-stem',

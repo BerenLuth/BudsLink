@@ -42,6 +42,7 @@ export const ConfigureWindow = GObject.registerClass({
 
         this._settings = settings;
         this._devicePath = devicePath;
+        this._gettext = _;
 
         const pathsString = settings.get_strv('nothing-buds-list').map(JSON.parse);
         this._settingsItems = pathsString.find(info => info.path === devicePath);
@@ -103,10 +104,10 @@ export const ConfigureWindow = GObject.registerClass({
 
         this._page.add(iconSelector);
 
-        this._addEq(_);
-        this._addBassEnhance(_);
-        this._addMiscSetting(_);
-        this._addGestureControls(_);
+        this._addEq();
+        this._addBassEnhance();
+        this._addMiscSetting();
+        this._addGestureControls();
 
         settings.connect('changed::nothing-buds-list', () => {
             const updatedList = settings.get_strv('nothing-buds-list').map(JSON.parse);
@@ -166,9 +167,11 @@ export const ConfigureWindow = GObject.registerClass({
         }
     }
 
-    _addEq(_) {
+    _addEq() {
         if (!this._modelData?.eqPreset)
             return;
+
+        const _ = this._gettext;
 
         const eqGroup = new Adw.PreferencesGroup({title: _('Equalizer')});
         this._page.add(eqGroup);
@@ -240,9 +243,11 @@ export const ConfigureWindow = GObject.registerClass({
     }
 
 
-    _addBassEnhance(_) {
+    _addBassEnhance() {
         if (!this._modelData?.bassEnhanceLevel)
             return;
+
+        const _ = this._gettext;
 
         const bassEnhanceGroup = new Adw.PreferencesGroup({title: _('Bass Enhance')});
         this._page.add(bassEnhanceGroup);
@@ -284,8 +289,10 @@ export const ConfigureWindow = GObject.registerClass({
         );
     }
 
-    _addMiscSetting(_) {
+    _addMiscSetting() {
         let miscGroup;
+        const _ = this._gettext;
+
         if (this._modelData?.lowLatencyMode || this._modelData?.inEarDetection ||
                 this._modelData?.ring) {
             miscGroup = new Adw.PreferencesGroup({title: _('Features')});
@@ -333,56 +340,69 @@ export const ConfigureWindow = GObject.registerClass({
         }
     }
 
-    _addGestureControls(_) {
-        const gc = this._modelData?.gestureOptions;
-        if (!gc)
-            return;
+    _buildNoiseControlRow(title, savedSlot)  {
+        const _ = this._gettext;
 
-        const allSlots = this._settingsItems.gestures ?? [];
+        const items = [
+            {name: _('Off'), icon: 'bbm-anc-off-symbolic'},
+            {name: _('Ambient'), icon: 'bbm-transperancy-symbolic'},
+            {name: _('Noise Cancellation'), icon: 'bbm-anc-on-symbolic'},
+        ];
 
-        const GESTURE_DISPLAY = {
-            single: _('Single Tap'),
-            double: _('Double Tap'),
-            triple: _('Triple Tap'),
-            actionAndHold: _('Tap and Hold'),
-            doubleActionAndHold: _('Double Tap and Hold'),
-            singlePinch: _('Single Pinch'),
-            doublePinch: _('Double Pinch'),
-            triplePinch: _('Triple Pinch'),
-            actionAndHoldPinch: _('Pinch and Hold'),
-            doubleActionAndHoldPinch: _('Double Pinch and Hold'),
-            singlePress: _('Single Press'),
-            doublePress: _('Double Press'),
-            triplePress: _('Triple Press'),
-            actionAndHoldPress: _('Press and Hold'),
-            doubleActionAndHoldPress: _('Double Press and Hold'),
-            roller: _('Roller'),
-        };
-
-        const hasLeftRight = gc.device && Object.keys(gc.device).length > 1;
-
-        const buildNoiseControlRow = (title, savedSlot) => {
-            const items = [
-                {name: _('Off'), icon: 'bbm-anc-off-symbolic'},
-                {name: _('Ambient'), icon: 'bbm-transperancy-symbolic'},
-                {name: _('Noise Cancellation'), icon: 'bbm-anc-on-symbolic'},
-            ];
-
-            const initialMask =
+        const initialMask =
             savedSlot && NC_BYTE_TO_BITMASK[savedSlot.action]
                 ? NC_BYTE_TO_BITMASK[savedSlot.action]
                 : 0;
 
-            return new CheckBoxesRowWidget({
-                rowTitle: _('Noise Control Cycle: ') + title,
-                items,
-                applyBtnName: _('Apply'),
-                initialValue: initialMask,
-                minRequired: 2,
-            });
+        const checkBoxWidget =  new CheckBoxesRowWidget({
+            rowTitle: _('Noise Control Cycle: ') + title,
+            items,
+            applyBtnName: _('Apply'),
+            initialValue: initialMask,
+            minRequired: 2,
+        });
+        return checkBoxWidget;
+    };
+
+    _addGestureControls() {
+        const gc = this._modelData?.gestureOptions;
+        if (!gc)
+            return;
+
+        const _ = this._gettext;
+        const allSlots = this._settingsItems.gestures ?? [];
+
+        const GESTURE_DISPLAY = {
+            'single-tap': _('Single Tap'),
+            'double-tap': _('Double Tap'),
+            'triple-tap': _('Triple Tap'),
+            'action-hold-tap': _('Tap and Hold'),
+            'double-action-hold-tap': _('Double Tap and Hold'),
+
+            'single-press': _('Single Press'),
+            'double-press': _('Double Press'),
+            'triple-press': _('Triple Press'),
+            'action-hold-press': _('Press and Hold'),
+            'double-action-hold-press': _('Double Press and Hold'),
+
+            'single-pinch': _('Single Pinch'),
+            'double-pinch': _('Double Pinch'),
+            'triple-pinch': _('Triple Pinch'),
+            'action-hold-pinch': _('Pinch and Hold'),
+            'double-action-hold-pinch': _('Double Pinch and Hold'),
+
+            'roller-action-hold-press': _('Press and Hold'),
+            'slider-single-slide': _('Slide to Adjust'),
+
+            'case-knob-single-press': _('Single Press'),
+            'case-knob-double-press': _('Double Press'),
+            'case-knob-triple-press': _('Triple Press'),
+            'case-knob-action-hold-press': _('Press and Hold'),
+            'case-knob-double-action-hold-press': _('Double Press and Hold'),
+            'case-knob-rotate-rotate': _('Rotate'),
         };
 
-        const makeDropdown = (gestureKey, gestureConfig, deviceKey) => {
+        const makeDropdown = (gestureKey, gestureConfig, slot) => {
             if (!gestureConfig?.actions?.length)
                 return null;
 
@@ -390,22 +410,19 @@ export const ConfigureWindow = GObject.registerClass({
             const onlyNoiseControl =
             actions.length === 1 && actions[0] === 'noise-control';
 
-            const typeByte = gc.mapping.gestureTypes[gestureKey];
+            const typeByte = gc.mapping.gestureTypes?.[gestureKey];
+            if (typeByte === undefined)
+                return null;
 
-            let deviceByte = null;
-            if (deviceKey === 'left')
-                deviceByte = gc.device.left;
-            else if (deviceKey === 'right')
-                deviceByte = gc.device.right;
+            const deviceByte = slot.device;
 
             let savedSlot = allSlots.find(s =>
                 s.device === deviceByte &&
             s.type === typeByte
             );
 
-            const title =
-            GESTURE_DISPLAY[gestureKey + this._gestureTypeSuffix(gestureConfig.type)] ??
-            _('Unknown Gesture');
+            const displayKey = `${slot.type}-${gestureConfig.type}`;
+            const title = GESTURE_DISPLAY[displayKey] ?? _('Unknown Gesture');
 
             let dd = null;
             let ncRow = null;
@@ -428,7 +445,7 @@ export const ConfigureWindow = GObject.registerClass({
             }
 
             if (gc.noiseControlModes && actions.includes('noise-control')) {
-                ncRow = buildNoiseControlRow(title, savedSlot);
+                ncRow = this._buildNoiseControlRow(title, savedSlot);
 
                 if (dd) {
                     const ncBytes = gc.mapping.actions['noise-control'];
@@ -473,64 +490,64 @@ export const ConfigureWindow = GObject.registerClass({
             return {dropdown: dd, checkBoxWidget: ncRow};
         };
 
-        if (!hasLeftRight) {
-            const group = new Adw.PreferencesGroup({title: _('Gesture Controls')});
-            this._page.add(group);
+        const groups = new Map();
 
-            for (const gestureKey of Object.keys(gc.gestures)) {
-                const widgets = makeDropdown(gestureKey, gc.gestures[gestureKey]);
-                if (!widgets)
-                    continue;
+        for (const slot of gc.slots) {
+            if (!groups.has(slot.group)) {
+                const groupWidget = new Adw.PreferencesGroup({
+                    title: this._getGroupTitle(slot.group),
+                });
 
-                if (widgets.dropdown)
-                    group.add(widgets.dropdown);
-                if (widgets.checkBoxWidget)
-                    group.add(widgets.checkBoxWidget);
+                groups.set(slot.group, groupWidget);
+                this._page.add(groupWidget);
             }
-        } else {
-            const leftGroup = new Adw.PreferencesGroup({title: _('Left Buds Gesture Control')});
-            const rightGroup = new Adw.PreferencesGroup({title: _('Right Buds Gesture Control')});
-            this._page.add(leftGroup);
-            this._page.add(rightGroup);
+        }
 
-            for (const gestureKey of Object.keys(gc.gestures)) {
-                const gestureConfig = gc.gestures[gestureKey];
+        for (const slot of gc.slots) {
+            const gestureKey = slot.type;
+            const gestureConfig = gc.gestures?.[gestureKey];
+            if (!gestureConfig)
+                continue;
 
-                const leftWidgets = makeDropdown(gestureKey, gestureConfig, 'left');
-                if (leftWidgets) {
-                    if (leftWidgets.dropdown)
-                        leftGroup.add(leftWidgets.dropdown);
-                    if (leftWidgets.checkBoxWidget)
-                        leftGroup.add(leftWidgets.checkBoxWidget);
-                }
+            const groupWidget = groups.get(slot.group);
+            if (!groupWidget)
+                continue;
 
-                const rightWidgets = makeDropdown(gestureKey, gestureConfig, 'right');
-                if (rightWidgets) {
-                    if (rightWidgets.dropdown)
-                        rightGroup.add(rightWidgets.dropdown);
-                    if (rightWidgets.checkBoxWidget)
-                        rightGroup.add(rightWidgets.checkBoxWidget);
-                }
-            }
+            const widgets = makeDropdown(gestureKey, gestureConfig, slot);
+            if (!widgets)
+                continue;
+
+            if (widgets.dropdown)
+                groupWidget.add(widgets.dropdown);
+
+            if (widgets.checkBoxWidget)
+                groupWidget.add(widgets.checkBoxWidget);
         }
     }
 
-    _gestureTypeSuffix(type) {
-        switch (type) {
-            case 'tap':
-                return '';
+    _getGroupTitle(group) {
+        const _ = this._gettext;
+        switch (group) {
+            case 'single':
+                return _('Gesture Controls');
 
-            case 'pinch':
-                return 'Pinch';
+            case 'left':
+                return _('Left Buds Gesture Control');
 
-            case 'press':
-                return 'Press';
+            case 'right':
+                return _('Right Buds Gesture Control');
 
             case 'roller':
-                return 'Roller';
+                return _('Roller Gesture Control');
+
+            case 'case-knob':
+                return _('Case Gesture Control');
+
+            case 'slider':
+                return _('Slider Gesture Control');
 
             default:
-                return '';
+                return _('Gesture Controls');
         }
     }
 
@@ -554,6 +571,9 @@ export const ConfigureWindow = GObject.registerClass({
             case 'volume-down':
                 return _('Volume Down');
 
+            case 'volume-control':
+                return _('Volume Control');
+
             case 'noise-control':
                 return _('Noise Control');
 
@@ -569,17 +589,32 @@ export const ConfigureWindow = GObject.registerClass({
             case 'channel-hop':
                 return _('Channel Hop');
 
-            case 'new-reporter':
+            case 'news-description':
                 return _('New Reporter');
 
             case 'spatial-audio':
                 return _('Spatial Audio');
 
-            case 'mic-mute':
-                return _('Mic Mute');
+            case 'mic-on-off':
+                return _('Mic On/Off');
 
             case 'eq-preset':
                 return _('Equalizer Preset');
+
+            case 'super-mic':
+                return _('Walkie Takie');
+
+            case 'ultra-bass':
+                return _('Bass');
+
+            case 'treble-enhance':
+                return _('Treble');
+
+            case 'case-game-mode':
+                return _('Toggle Low Latency');
+
+            case 'essential-space':
+                return _('Essential Space');
 
             default:
                 return action;

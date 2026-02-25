@@ -36,16 +36,18 @@ export default {
     dualConnectionReboot: true,
 
     gestureOptions: {
-        device: {
-            'single': 0x06,
-        },
+        default: '03060102090601030806010716',
+        slots: [
+            {group: 'single', device: 0x06, buttonId: 0x01, type: 'double'},
+            {group: 'single', device: 0x06, buttonId: 0x01, type: 'triple'},
+            {group: 'single', device: 0x06, buttonId: 0x01, type: 'action-hold'},
+        ],
         mapping: {
             gestureTypes: {
-                double: 0x02,
-                triple: 0x03,
-                actionAndHold: 0x07,
+                'double': 0x02,
+                'triple': 0x03,
+                'action-hold': 0x07,
             },
-
             actions: {
                 'skip-back': [0x08],
                 'skip-forward': [0x09],
@@ -54,35 +56,30 @@ export default {
             },
         },
         gestures: {
-            double: {
-                type: 'press',
+            'double': {
+                type: 'tap',
                 actions: [
                     'skip-back',
                     'skip-forward',
                     'voice-assistant',
                 ],
             },
-            triple: {
-                type: 'press',
+            'triple': {
+                type: 'tap',
                 actions: [
                     'skip-back',
                     'skip-forward',
                     'voice-assistant',
                 ],
             },
-            actionAndHold: {
-                type: 'press',
+            'action-hold': {
+                type: 'tap',
                 actions: [
                     'noise-control',
                 ],
             },
         },
         noiseControlModes: ['off', 'transparency', 'noise-cancellation'],
-        nonAssignable: {
-            single: ['play-pause', 'call-answer', 'call-hangup'],
-            double: ['call-decline'],
-            rotate: ['volume-control'],
-        },
     },
 
 

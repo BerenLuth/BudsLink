@@ -1,5 +1,5 @@
 'use strict';
-
+/* eslint-disable max-len */
 export default {
     modelId: 'B187',
     name: 'CMF Buds Pro 2',
@@ -42,30 +42,51 @@ export default {
     dualConnectionReboot: true,
 
     gestureOptions: {
-        device: {
-            'left': 0x02,
-            'right': 0x03,
-        },
+        default: '0f03010209030103080301071603010901020102090201030802010716020109010401010104010201040103010401070104010a010409020104090301',
+        slots: [
+            {group: 'left',  device: 0x02, buttonId: 0x01, type: 'double'},
+            {group: 'left',  device: 0x02, buttonId: 0x01, type: 'triple'},
+            {group: 'left',  device: 0x02, buttonId: 0x01, type: 'action-hold'},
+            {group: 'left',  device: 0x02, buttonId: 0x01, type: 'double-action-hold'},
+            {group: 'right', device: 0x03, buttonId: 0x01, type: 'double'},
+            {group: 'right', device: 0x03, buttonId: 0x01, type: 'triple'},
+            {group: 'right', device: 0x03, buttonId: 0x01, type: 'action-hold'},
+            {group: 'right', device: 0x03, buttonId: 0x01, type: 'double-action-hold'},
+            {group: 'case-knob', device: 0x04, buttonId: 0x01, type: 'case-knob-single'},
+            {group: 'case-knob', device: 0x04, buttonId: 0x01, type: 'case-knob-double'},
+            {group: 'case-knob', device: 0x04, buttonId: 0x01, type: 'case-knob-triple'},
+            {group: 'case-knob', device: 0x04, buttonId: 0x01, type: 'case-knob-action-hold'},
+            {group: 'case-knob', device: 0x04, buttonId: 0x01, type: 'case-knob-double-action-hold'},
+            {group: 'case-knob', device: 0x04, buttonId: 0x01, type: 'case-knob-rotate'},
+        ],
         mapping: {
             gestureTypes: {
-                double: 0x02,
-                triple: 0x03,
-                actionAndHold: 0x07,
-                doubleActionAndHold: 0x09,
+                'double': 0x02,
+                'triple': 0x03,
+                'action-hold': 0x07,
+                'double-action-hold': 0x09,
+                'case-knob-single': 0x01,
+                'case-knob-double': 0x02,
+                'case-knob-triple': 0x03,
+                'case-knob-action-hold': 0x07,
+                'case-knob-double-action-hold': 0x09,
+                'case-knob-rotate': 0x0A,
             },
-
             actions: {
                 'no-action': [0x01],
+                'play-pause': [0x02],
                 'skip-back': [0x08],
                 'skip-forward': [0x09],
                 'voice-assistant': [0x0B],
                 'volume-up': [0x12],
                 'volume-down': [0x13],
                 'noise-control': [0x0A, 0x14, 0x15, 0x16],
+                'case-game-mode': [0x11],
+                'volume-control': [0x17],
             },
         },
         gestures: {
-            double: {
+            'double': {
                 type: 'tap',
                 actions: [
                     'play-pause',
@@ -75,7 +96,7 @@ export default {
                     'no-action',
                 ],
             },
-            triple: {
+            'triple': {
                 type: 'tap',
                 actions: [
                     'skip-back',
@@ -84,7 +105,7 @@ export default {
                     'no-action',
                 ],
             },
-            actionAndHold: {
+            'action-hold': {
                 type: 'tap',
                 actions: [
                     'noise-control',
@@ -92,7 +113,7 @@ export default {
                     'no-action',
                 ],
             },
-            doubleActionAndHold: {
+            'double-action-hold': {
                 type: 'tap',
                 actions: [
                     'volume-up',
@@ -101,12 +122,67 @@ export default {
                     'no-action',
                 ],
             },
+            'case-knob-single': {
+                type: 'press',
+                actions: [
+                    'play-pause',
+                    'skip-back',
+                    'skip-forward',
+                    'voice-assistant',
+                    'case-game-mode',
+                    'no-action',
+                ],
+            },
+            'case-knob-double': {
+                type: 'press',
+                actions: [
+                    'play-pause',
+                    'skip-back',
+                    'skip-forward',
+                    'voice-assistant',
+                    'case-game-mode',
+                    'no-action',
+                ],
+            },
+            'case-knob-triple': {
+                type: 'press',
+                actions: [
+                    'play-pause',
+                    'skip-back',
+                    'skip-forward',
+                    'voice-assistant',
+                    'case-game-mode',
+                    'no-action',
+                ],
+            },
+            'case-knob-action-hold': {
+                type: 'press',
+                actions: [
+                    'noise-control',
+                    'voice-assistant',
+                    'case-game-mode',
+                    'no-action',
+                ],
+            },
+            'case-knob-double-action-hold': {
+                type: 'press',
+                actions: [
+                    'volume-up',
+                    'volume-down',
+                    'voice-assistant',
+                    'case-game-mode',
+                    'no-action',
+                ],
+            },
+            'case-knob-rotate': {
+                type: 'rotate',
+                actions: [
+                    'volume-control',
+                    'no-action',
+                ],
+            },
         },
         noiseControlModes: ['off', 'transparency', 'noise-cancellation'],
-        nonAssignable: {
-            singlePinch: ['call-answer'],
-            doublePinch: ['call-hangup', 'call-decline'],
-        },
     },
 
     albumArtIcon: 'earbuds-stem',

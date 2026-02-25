@@ -41,77 +41,77 @@ export default {
     dualConnectionReboot: false,
 
     gestureOptions: {
-        device: {
-            'left': 0x02,
-            'right': 0x03,
-        },
+        default: '0902010209030102090201030803010308020107160301071602010901030109010401070B',
+        slots: [
+            {group: 'left',  device: 0x02, buttonId: 0x01, type: 'double'},
+            {group: 'left',  device: 0x02, buttonId: 0x01, type: 'triple'},
+            {group: 'left',  device: 0x02, buttonId: 0x01, type: 'action-hold'},
+            {group: 'left',  device: 0x02, buttonId: 0x01, type: 'double-action-hold'},
+            {group: 'right', device: 0x03, buttonId: 0x01, type: 'double'},
+            {group: 'right', device: 0x03, buttonId: 0x01, type: 'triple'},
+            {group: 'right', device: 0x03, buttonId: 0x01, type: 'action-hold'},
+            {group: 'right', device: 0x03, buttonId: 0x01, type: 'double-action-hold'},
+        ],
         mapping: {
             gestureTypes: {
-                double: 0x02,
-                triple: 0x03,
-                actionAndHold: 0x07,
-                doubleActionAndHold: 0x09,
+                'double': 0x02,
+                'triple': 0x03,
+                'action-hold': 0x07,
+                'double-action-hold': 0x09,
             },
-
             actions: {
-                'no-action': [0x01],
-                'skip-back': [0x08],
                 'skip-forward': [0x09],
+                'skip-back': [0x08],
                 'voice-assistant': [0x0B],
+                'noise-control': [0x0A, 0x14, 0x15, 0x16],
                 'volume-up': [0x12],
                 'volume-down': [0x13],
-                'mic-mute': [0x1D],
-                'new-reporter': [0x21],
-                'noise-control': [0x0A, 0x14, 0x15, 0x16],
+                'mic-on-off': [0x1D],
+                'essential-space': [0x21],
+                'no-action': [0x01],
             },
         },
         gestures: {
-            double: {
+            'double': {
                 type: 'press',
                 actions: [
-                    'skip-back',
                     'skip-forward',
+                    'skip-back',
                     'voice-assistant',
                 ],
             },
-            triple: {
+            'triple': {
                 type: 'press',
                 actions: [
-                    'skip-back',
                     'skip-forward',
+                    'skip-back',
                     'voice-assistant',
-                    'new-reporter',
                     'no-action',
                 ],
             },
-            actionAndHold: {
+            'action-hold': {
                 type: 'press',
                 actions: [
                     'noise-control',
+                    'voice-assistant',
                     'volume-up',
                     'volume-down',
-                    'voice-assistant',
-                    'new-reporter',
+                    'mic-on-off',
                     'no-action',
                 ],
             },
-            doubleActionAndHold: {
+            'double-action-hold': {
                 type: 'press',
                 actions: [
                     'noise-control',
+                    'voice-assistant',
                     'volume-up',
                     'volume-down',
-                    'voice-assistant',
-                    'new-reporter',
                     'no-action',
                 ],
             },
         },
         noiseControlModes: ['off', 'transparency', 'noise-cancellation'],
-        nonAssignable: {
-            single: ['play-pause', 'call-answer', 'call-hangup'],
-            double: ['call-decline'],
-        },
     },
 
     albumArtIcon: 'earbuds-stem',

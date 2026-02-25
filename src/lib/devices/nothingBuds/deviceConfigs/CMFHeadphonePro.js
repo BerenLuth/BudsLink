@@ -38,67 +38,76 @@ export default {
     dualConnectionReboot: false,
 
     gestureOptions: {
-        device: {
-            'single': 0x06,
-        },
+        default: '060A0107060A010B0605012306010716',
+        slots: [
+            {group: 'single', device: 0x06, buttonId: 0x0A, type: 'single'},
+            {group: 'single', device: 0x06, buttonId: 0x0A, type: 'action-hold'},
+            {group: 'roller', device: 0x06, buttonId: 0x01, type: 'roller-action-hold'},
+            {group: 'slider', device: 0x06, buttonId: 0x05, type: 'slider-single'},
+        ],
         mapping: {
             gestureTypes: {
-                single: 0x01,
-                actionAndHold: 0x07,
+                'single': 0x01,
+                'action-hold': 0x07,
+                'roller-action-hold': 0x07,
+                'slider-single': 0x01,
             },
-
             actions: {
                 'no-action': [0x01],
                 'channel-hop': [0x20],
                 'voice-assistant': [0x0B],
-                'new-reporter': [0x1F],
+                'news-description': [0x1F],
                 'spatial-audio': [0x1B],
-                'mic-mute': [0x1D],
+                'mic-on-off': [0x1D],
                 'eq-preset': [0x22],
                 'noise-control': [0x0A, 0x14, 0x15, 0x16],
+                'ultra-bass': [0x23],
+                'treble-enhance': [0x24],
             },
         },
         gestures: {
-            single: {
+            'single': {
                 type: 'press',
                 actions: [
                     'channel-hop',
                     'voice-assistant',
-                    'new-reporter',
-                    'noise-control',
+                    'news-description',
                     'spatial-audio',
-                    'mic-mute',
+                    'mic-on-off',
                     'eq-preset',
+                    'noise-control',
                     'no-action',
                 ],
             },
-            actionAndHold: {
+            'action-hold': {
                 type: 'press',
                 actions: [
                     'channel-hop',
                     'voice-assistant',
-                    'new-reporter',
-                    'noise-control',
+                    'news-description',
                     'spatial-audio',
-                    'mic-mute',
+                    'mic-on-off',
                     'eq-preset',
+                    'noise-control',
                     'no-action',
                 ],
             },
-            roller: {
-                type: 'roller',
-                action: [
+            'roller-action-hold': {
+                type: 'press',
+                actions: [
                     'noise-control',
                     'no-action',
+                ],
+            },
+            'slider-single': {
+                type: 'slide',
+                actions: [
+                    'ultra-bass',
+                    'treble-enhance',
                 ],
             },
         },
         noiseControlModes: ['off', 'transparency', 'noise-cancellation'],
-        nonAssignable: {
-            single: ['play-pause', 'call-answer', 'call-hangup'],
-            double: ['call-decline'],
-        },
-
     },
 
     albumArtIcon: 'headphone1',
