@@ -259,6 +259,8 @@ class NothingBudsSocket extends SocketHandler {
         }
 
         if (modelData.noiseControl) {
+            this._getNoiseControlConfig();
+            await this._wait();
             this._getNoiseControl();
             await this._wait();
         }
@@ -422,6 +424,12 @@ class NothingBudsSocket extends SocketHandler {
             }
         }
         this._log.info(`this._noiseControlBytes = ${this._noiseControlBytes}`);
+    }
+
+    _getNoiseControlConfig() {
+        this._log.info('Request NoiseControlConfig');
+        this._buildNoiseControlByteList();
+        this._sendPacket(PayloadType.ANC_CONFIGURATION_GET);
     }
 
     _getNoiseControl() {

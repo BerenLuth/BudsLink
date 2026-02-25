@@ -64,6 +64,7 @@ export const PayloadType = {
     GESTURES_SET: 0xF003,
     GESTURES_NTFY: 0x4018,
 
+    ANC_CONFIGURATION_GET: 0xC01D,
     ANC_GET: 0xC01E,
     ANC_SET: 0xF00F,
     ANC_PRIMARY_NTFY: 0xE003,
