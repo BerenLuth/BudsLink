@@ -2,6 +2,7 @@ import GObject from 'gi://GObject';
 
 import {createLogger} from '../lib/devices/logger.js';
 
+/* eslint-disable-next-line no-unused-vars */
 const _log = createLogger('SignalTracker');
 const destroyableTypes = [];
 
@@ -78,8 +79,8 @@ class SignalTracker {
             data = {ownerSignals: [], destroyId: 0};
             this._map.set(obj, data);
 
-            if (!_hasDestroySignal(obj))
-                _log.info('Warning: tracked object has no destroy():', obj);
+        /*    if (!_hasDestroySignal(obj))
+                _log.info('Warning: tracked object has no destroy():', obj); */
         }
         return data;
     }
