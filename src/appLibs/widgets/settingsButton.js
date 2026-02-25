@@ -5,8 +5,6 @@ import GObject from 'gi://GObject';
 import Adw from 'gi://Adw';
 import {gettext as _} from 'gettext';
 
-import {openLogWindow} from './logWindow.js';
-
 const MODE_KEY = 'dark-mode';
 const ACCENT_KEY = 'accent-color';
 
@@ -57,16 +55,6 @@ class SettingsButton extends Gtk.MenuButton {
             margin_top: 6,
             margin_bottom: 6,
         });
-
-        box.append(this._createRow(
-            'bbm-logs-symbolic',
-            _('Realtime Logs'),
-            false,
-            () => {
-                openLogWindow(_);
-                this._mainPopover.popdown();
-            }
-        ));
 
         box.append(this._createRow(
             'bbm-dark-mode-symbolic',

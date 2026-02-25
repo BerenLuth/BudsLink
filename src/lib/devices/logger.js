@@ -10,8 +10,6 @@ const LOG_BYTES = true;
 const LogDir = GLib.build_filenamev([GLib.get_user_state_dir(), 'log']);
 GLib.mkdir_with_parents(LogDir, 0o755);
 
-let liveLogSink = null;
-
 function getLogFiles() {
     if (!LogDir)
         throw new Error('LogDir not initialized (initContext not called yet)');
@@ -46,9 +44,6 @@ function WriteLogLine(prefix, msg) {
     enforceLogSizeLimit(logFile, historyFile);
     const line = `[${new Date().toISOString()}] ${prefix}: ${msg}\n\n`;
 
-    if (liveLogSink)
-        liveLogSink(line);
-
     const stream = logFile.append_to(Gio.FileCreateFlags.NONE, null);
     const bytes = new GLib.Bytes(line);
     stream.write_bytes(bytes, null);
@@ -71,6 +66,3 @@ export function createLogger(tag) {
     };
 }
 
-export function setLiveLogSink(callback) {
-    liveLogSink = callback;
-}
