@@ -503,9 +503,14 @@ export const NothingBudsDevice = GObject.registerClass({
 
             if (toggle.bytes.length > 1) {
                 const radioIndex = this._props.box1RadioButtonState;
-                const byte = this._ancRadioMap[radioIndex];
-                if (byte != null)
-                    ancMode = byte;
+                let byte = this._ancRadioMap[radioIndex];
+                if (byte == null) {
+                    const levels = this._modelData.noiseControl.noiseCancellation.levels;
+                    const lastLevelKey = Object.keys(levels).pop();
+                    byte = levels[lastLevelKey];
+                    this._props.box1RadioButtonState = this._ancRadioReverse[byte];
+                }
+                ancMode = byte;
             } else {
                 ancMode = toggle.bytes[0];
             }
