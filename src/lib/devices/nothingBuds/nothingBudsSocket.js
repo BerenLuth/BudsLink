@@ -25,8 +25,9 @@ https://github.com/DaanHessen/earctl/
 DaanHessen
 **/
 
-export const NothingBudsSocket = GObject.registerClass(
-class NothingBudsSocket extends SocketHandler {
+export const NothingBudsSocket = GObject.registerClass({
+    GTypeName: 'BudsLink_NothingBudsSocket',
+}, class NothingBudsSocket extends SocketHandler {
     _init(devicePath, profileManager, profile, callbacks) {
         super._init(devicePath, profileManager, profile);
         this._log = createLogger('NothingEarSocket');
@@ -765,10 +766,6 @@ class NothingBudsSocket extends SocketHandler {
     }
 
     destroy() {
-        if (this._nothingEarDestroyed)
-            return;
-        this._nothingEarDestroyed = true;
-
         if (this._modelFallbackTimeoutId) {
             GLib.Source.remove(this._modelFallbackTimeoutId);
             this._modelFallbackTimeoutId = null;

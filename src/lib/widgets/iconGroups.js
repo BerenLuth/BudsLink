@@ -1,7 +1,7 @@
 export const supportedAudioSingleIcons = [
-    'audio-headphones', 'audio-headset', 'headphone1', 'earbuds', 'earbuds-wingtip',
-    'earbuds-wingtip2', 'earbuds-neckband', 'earbuds-stem', 'earbuds-stem2',
-    'earbuds-stem3', 'earbuds-bean',
+    'audio-headphones', 'audio-headset', 'headphone1',
+    'earbuds', 'earbuds-wingtip', 'earbuds-wingtip2', 'earbuds-neckband', 'earbuds-stem',
+    'earbuds-stem2', 'earbuds-stem3', 'earbuds-bean',
 ];
 
 export const supportedAudioDualIcons = [

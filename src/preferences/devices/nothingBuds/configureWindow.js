@@ -30,7 +30,7 @@ const NC_BYTE_TO_BITMASK = {
 };
 
 export const ConfigureWindow = GObject.registerClass({
-    GTypeName: 'BluetoothBatteryMeter_NothingBudsConfigureWindow',
+    GTypeName: 'BudsLink_NothingBudsConfigureWindow',
 }, class ConfigureWindow extends Adw.Window {
     _init(settings, mac, devicePath, parentWindow, _, modal = false) {
         super._init({
@@ -60,7 +60,7 @@ export const ConfigureWindow = GObject.registerClass({
 
         const toolViewBar = new Adw.ToolbarView();
         const headerBar = new Adw.HeaderBar({
-            decoration_layout: 'icon:close',
+            decoration_layout: ':minimize,close',
             show_end_title_buttons: true,
         });
         this._page = new Adw.PreferencesPage();

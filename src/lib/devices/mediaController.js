@@ -8,7 +8,7 @@ import {Gvc, Volume} from '../../appLibs/gvcProvider.js';
 const MEDIA_PLAYER_PREFIX = 'org.mpris.MediaPlayer2.';
 
 export const MediaController = GObject.registerClass({
-    GTypeName: 'BluetoothBatteryMeter_MediaController',
+    GTypeName: 'BudsLink_MediaController',
     Properties: {
         'output-is-a2dp': GObject.ParamSpec.boolean(
             'output-is-a2dp', 'output-is-a2dp', '', GObject.ParamFlags.READWRITE, false

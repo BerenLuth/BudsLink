@@ -467,12 +467,6 @@ export const NothingBudsDevice = GObject.registerClass({
 
         this._props.toggle1State = toggleIndex;
 
-        this._log.info(`isNcMode: ${isNcMode}`);
-        if (isNcMode) {
-            this._log.info(`this._ancRadioReverse: ${JSON.stringify(this._ancRadioReverse)}`);
-            this._log.info(`this._ancRadioReverse[mode] ${this._ancRadioReverse[mode]}`);
-        }
-
         if (isNcMode && this._ancRadioReverse && this._ancRadioReverse[mode])
             this._props.box1RadioButtonState = this._ancRadioReverse[mode];
 
@@ -480,8 +474,6 @@ export const NothingBudsDevice = GObject.registerClass({
             this._props.optionsBoxVisible = 1;
         else
             this._props.optionsBoxVisible = 0;
-
-        this._log.info(`this._props.box1RadioButtonState: ${this._props.box1RadioButtonState}`);
 
         this.dataHandler?.setProps(this._props);
     }
@@ -532,11 +524,7 @@ export const NothingBudsDevice = GObject.registerClass({
         this._props.box1RadioButtonState = index;
         this.dataHandler?.setProps(this._props);
 
-        this._log.info(`radio.index: ${index}`);
-
         const byte = this._ancRadioMap[index];
-        this._log.info(`radio.byte: ${byte}`);
-
         if (byte != null)
             this._nothingBudsSocket?.setNoiseControl(byte);
     }
