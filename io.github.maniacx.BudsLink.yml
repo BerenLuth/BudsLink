@@ -11,6 +11,7 @@ finish-args:
   - --env=PULSE_PROP_media.category=Manager
   - --system-talk-name=org.bluez
   - --talk-name=org.mpris.MediaPlayer2.*
+  - --own-name=io.github.maniacx.BudsLink
   - --socket=pulseaudio
   - --device=dri
 

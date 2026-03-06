@@ -12,7 +12,7 @@ import {OptionsBox} from './optionsBox.js';
 export const DeviceRowNavPage = GObject.registerClass({
     GTypeName: 'BudsLink_DeviceRowNavPage',
 }, class DeviceRowNavPage extends Adw.ActionRow {
-    _init(path, alias, icon, navView, devicesGrp, appDir, dataHandler) {
+    _init(path, alias, navView, devicesGrp, appDir, dataHandler) {
         super._init({activatable: true});
         this.title = alias;
         this._dataHandler = dataHandler;

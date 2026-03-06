@@ -8,19 +8,10 @@ const BLUEZ = 'org.bluez';
 const OBJ_MANAGER_IFACE = 'org.freedesktop.DBus.ObjectManager';
 const FD_PROPS_IFACE = 'org.freedesktop.DBus.Properties';
 const DEVICE_IFACE = 'org.bluez.Device1';
-// const BATTERY_IFACE = 'org.bluez.Battery1';
 
 export const BluetoothClient = GObject.registerClass({
     Signals: {
         'devices-update': {},
-        /*
-        'battery-level-update': {
-            param_types: [
-                GObject.TYPE_STRING,
-                GObject.TYPE_UCHAR,
-            ],
-        },
-        */
     },
 }, class BluetoothClient extends GObject.Object {
     _init() {
@@ -29,7 +20,6 @@ export const BluetoothClient = GObject.registerClass({
         this._log = createLogger('BluetoothClient');
         this._bus = Gio.DBus.system;
         this.devices = new Map();
-        // this.bluezBatteryDevices = new Map();
     }
 
     async initClient() {
@@ -64,13 +54,6 @@ export const BluetoothClient = GObject.registerClass({
                         this.devices.set(path, {connected, icon, alias});
                     }
                 }
-                /*
-                if (BATTERY_IFACE in ifaces) {
-                    const battProps = ifaces[BATTERY_IFACE];
-                    const batteryLevel = battProps?.Percentage?.deepUnpack?.();
-                    this.bluezBatteryDevices.set(path, batteryLevel);
-                }
-                */
             }
 
             this._bus.signal_subscribe(
@@ -82,17 +65,7 @@ export const BluetoothClient = GObject.registerClass({
                 Gio.DBusSignalFlags.NONE,
                 this._onPropertiesChanged.bind(this)
             );
-            /*
-            this._bus.signal_subscribe(
-                BLUEZ,
-                FD_PROPS_IFACE,
-                'PropertiesChanged',
-                null,
-                BATTERY_IFACE,
-                Gio.DBusSignalFlags.NONE,
-                this._onBattPropertiesChanged.bind(this)
-            );
-            */
+
             this._bus.signal_subscribe(
                 BLUEZ,
                 OBJ_MANAGER_IFACE,
@@ -112,13 +85,9 @@ export const BluetoothClient = GObject.registerClass({
     _onInterfacesRemoved(conn, sender, path, iface, signal, params) {
         const [objPath, ifaces] = params.deepUnpack();
 
-        // if (ifaces.includes(BATTERY_IFACE))
-        //     this.bluezBatteryDevices.delete(objPath);
-
         if (!ifaces.includes(DEVICE_IFACE))
             return;
 
-        // this.bluezBatteryDevices.delete(objPath);
         this.devices.delete(objPath);
         this.emit('devices-update');
     }
@@ -160,15 +129,5 @@ export const BluetoothClient = GObject.registerClass({
             this.emit('devices-update');
         }
     }
-/*
-    _onBattPropertiesChanged(conn, sender, path, iface, signal, params) {
-        const [ifaceName, changed] = params.deepUnpack();
-        if (ifaceName === 'org.bluez.Battery1' && 'Percentage' in changed) {
-            const battLevel = changed.Percentage.deepUnpack();
-            this.bluezBatteryDevices.set(path, battLevel);
-            this.emit('battery-level-update', path, battLevel);
-        }
-    }
-*/
 });
 

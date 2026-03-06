@@ -1,0 +1,18 @@
+<node>
+  <interface name="io.github.maniacx.BudsLink.DeviceManager">
+    <method name="HoldService"/>
+    <method name="ReleaseService"/>
+    <method name="ServiceVersion">
+      <arg name="version" type="s" direction="out"/>
+    </method>
+    <method name="ListDevices">
+      <arg name="devices" type="ao" direction="out"/>
+    </method>
+    <signal name="DeviceAdded">
+      <arg name="device_path" type="o"/>
+    </signal>
+    <signal name="DeviceRemoved">
+      <arg name="device_path" type="o"/>
+    </signal>
+  </interface>
+</node>

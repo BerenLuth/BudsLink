@@ -4,6 +4,7 @@
         <file>app.js</file>
         <file>appLibs/bluetoothClient.js</file>
         <file>appLibs/confirueWindowlauncher.js</file>
+        <file>appLibs/dbusService.js</file>
         <file>appLibs/gvcProvider.js</file>
         <file>appLibs/signalTracker.js</file>
         <file>appLibs/themeManager.js</file>

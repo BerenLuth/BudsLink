@@ -13,6 +13,7 @@ import {createLogger} from './lib/devices/logger.js';
 import {DeviceRowNavPage} from './appLibs/widgets/deviceRow.js';
 import {SettingsButton} from './appLibs/widgets/settingsButton.js';
 import {ThemeManager} from './appLibs/themeManager.js';
+import {DbusService} from './appLibs/dbusService.js';
 import {BluetoothClient} from './appLibs/bluetoothClient.js';
 import {initConfigureWindowLauncher} from './appLibs/confirueWindowlauncher.js';
 import {EnhancedDeviceSupportManager} from './lib/enhancedDeviceSupportManager.js';
@@ -86,10 +87,44 @@ export const BudsLinkApplication = GObject.registerClass({
         this._compDevices = new Map();
     }
 
+    vfunc_dbus_register(connection, objectPath) {
+        if (!super.vfunc_dbus_register(connection, objectPath))
+            return false;
+
+        this._onDbusRegister(connection, objectPath);
+
+        return true;
+    }
+
+    _onDbusRegister(connection, objectPath) {
+        this._dbusService = new DbusService(connection, objectPath, this._holdService.bind(this),
+            this._releaseService.bind(this));
+    }
+
+    _holdService() {
+        if (this._releaseTimer) {
+            GLib.source_remove(this._releaseTimer);
+            this._releaseTimer = 0;
+        }
+
+        this.hold();
+    }
+
+    _releaseService() {
+        if (this._releaseTimer)
+            return;
+
+        this._releaseTimer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
+            this._releaseTimer = 0;
+            this.release();
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
     _onStartup() {
         this.settings = new Gio.Settings({schema_id: AppId});
-
         this._themeManager = new ThemeManager(this, this.settings);
+        initConfigureWindowLauncher(this.settings, _);
 
         const provider = new Gtk.CssProvider();
         provider.load_from_resource('/io/github/maniacx/BudsLink/stylesheet.css');
@@ -98,6 +133,18 @@ export const BudsLinkApplication = GObject.registerClass({
             provider,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         );
+
+        const iconsPath = GLib.build_filenamev([AppDir, 'icons']);
+        const iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
+        iconTheme.add_search_path(iconsPath);
+
+        this.airpodsEnabled = true;
+        this.sonyEnabled = true;
+        this.galaxyBudsEnabled = true;
+        this.nothingBudsEnabled = true;
+        this._client = new BluetoothClient();
+        this._deviceManager = new EnhancedDeviceSupportManager(this);
+        this._initialize();
     }
 
     _onActivate() {
@@ -105,6 +152,8 @@ export const BudsLinkApplication = GObject.registerClass({
             this._window.present();
             return;
         }
+
+        this._showGui = true;
 
         this._window = new Adw.ApplicationWindow({
             application: this,
@@ -114,20 +163,14 @@ export const BudsLinkApplication = GObject.registerClass({
 
         this._window.connect('close-request', () => {
             this._log.info('window close requested');
-            this.quit();
+            this._showGui = false;
+            this._sync();
+            this._window = null;
+            this._navView = null;
+            this._devicesGrp = null;
+            this._noDeviceRow = null;
             return false;
         });
-
-        this.airpodsEnabled = true;
-        this.sonyEnabled = true;
-        this.galaxyBudsEnabled = true;
-        this.nothingBudsEnabled = true;
-
-        const iconsPath = GLib.build_filenamev([AppDir, 'icons']);
-        const iconTheme = Gtk.IconTheme.get_for_display(this._window.get_display());
-        iconTheme.add_search_path(iconsPath);
-
-        initConfigureWindowLauncher(this.settings, _);
 
         const toolbarView = new Adw.ToolbarView();
         const headerBar = new Adw.HeaderBar({
@@ -158,10 +201,6 @@ export const BudsLinkApplication = GObject.registerClass({
 
         this._window.set_content(this._navView);
         this._window.present();
-
-        this._client = new BluetoothClient();
-        this._deviceManager = new EnhancedDeviceSupportManager(this);
-        this._initialize();
     }
 
     async _initialize() {
@@ -192,40 +231,66 @@ export const BudsLinkApplication = GObject.registerClass({
 
     _sync() {
         for (const [path, dev] of this._client.devices) {
-            try {
-                const deviceProp =
+            const deviceProp =
                 this._deviceManager.onDeviceSync(path, dev.connected, dev.icon, dev.alias);
 
-                if (this._compDevices.has(path)) {
-                    const props = this._compDevices.get(path);
-                    if (!dev.connected) {
+            if (this._compDevices.has(path)) {
+                const props = this._compDevices.get(path);
+
+                if (!dev.connected) {
+                    this._dbusService?.removeDevice(path);
+
+                    if (this._showGui && props.row) {
                         props.row.destroy();
                         props.row.get_parent()?.remove(props.row);
-                        this._compDevices.delete(path);
-                    } else if (dev.connected && !props.row &&
-                            deviceProp.type && deviceProp.dataHandler) {
-                        props.type = deviceProp.type;
-                        props.dataHandler = deviceProp.dataHandler;
-                        props.row = new DeviceRowNavPage(path, dev.alias, dev.icon, this._navView,
-                            this._devicesGrp, AppDir, props.dataHandler);
                     }
-                } else if (dev.connected) {
-                    const props = {type: null, dataHandler: null, row: null};
-                    if (deviceProp.type && deviceProp.dataHandler) {
-                        props.type = deviceProp.type;
-                        props.dataHandler = deviceProp.dataHandler;
-                        props.row = new DeviceRowNavPage(path, dev.alias, dev.icon, this._navView,
-                            this._devicesGrp, AppDir, props.dataHandler);
-                    }
-                    this._compDevices.set(path, props);
+
+                    this._compDevices.delete(path);
+                    continue;
                 }
-            } catch (e) {
-                this._log.error(e);
+
+                const dataHandlerRecieved =
+                dev.connected && deviceProp.dataHandler && !props.dataHandler;
+
+                if (dataHandlerRecieved) {
+                    props.dataHandler = deviceProp.dataHandler;
+                    this._dbusService?.addDevice(path, props.dataHandler);
+
+                    if (this._showGui) {
+                        props.row = new DeviceRowNavPage(path, dev.alias,
+                            this._navView, this._devicesGrp, AppDir, props.dataHandler);
+                    }
+                }
+
+                if (dev.connected) {
+                    if (!this._showGui && props.row) {
+                        props.row = null;
+                    } else if (this._showGui && !props.row && props.dataHandler) {
+                        props.row = new DeviceRowNavPage(path, dev.alias,
+                            this._navView, this._devicesGrp, AppDir, props.dataHandler);
+                    }
+                }
+            } else if (dev.connected) {
+                const props = {dataHandler: null, row: null};
+
+                if (deviceProp.dataHandler) {
+                    props.dataHandler = deviceProp.dataHandler;
+                    this._dbusService?.addDevice(path, props.dataHandler);
+
+                    if (this._showGui) {
+                        props.row = new DeviceRowNavPage(path, dev.alias,
+                            this._navView, this._devicesGrp, AppDir, props.dataHandler);
+                    }
+                }
+
+                this._compDevices.set(path, props);
             }
         }
 
-        const anyDeviceRows = Array.from(this._compDevices.values()).some(p => p.row !== null);
-        this._noDeviceRow.visible = !anyDeviceRows;
+        if (this._showGui && this._noDeviceRow) {
+            const anyDeviceRows = Array.from(this._compDevices.values()).some(p => p.row !== null);
+            this._noDeviceRow.visible = !anyDeviceRows;
+        }
 
         this._deviceManager?.updateEnhancedDevicesInstance();
     }
@@ -242,6 +307,9 @@ export const BudsLinkApplication = GObject.registerClass({
             GLib.Source.remove(this._sigtermId);
             this._sigtermId = 0;
         }
+
+        this._dbusService?.destroy();
+        this._dbusService = null;
 
         this._deviceManager?.destroy();
         this._deviceManager = null;

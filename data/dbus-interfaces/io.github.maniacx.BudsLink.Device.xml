@@ -1,0 +1,11 @@
+<node>
+  <interface name="io.github.maniacx.BudsLink.Device">
+    <property name="Alias" type="s" access="read"/>
+    <property name="Config" type="s" access="read"/>
+    <property name="State" type="s" access="read"/>
+    <method name="UiAction">
+      <arg name="actionName" type="s" direction="in"/>
+      <arg name="value" type="i" direction="in"/>
+    </method>
+  </interface>
+</node>

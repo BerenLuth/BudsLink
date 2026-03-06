@@ -3,5 +3,7 @@
 	<gresource prefix="/io/github/maniacx/BudsLink">
     <file>stylesheet.css</file>
     <file preprocess="xml-stripblanks" alias="io.github.maniacx.BudsLink.metainfo.xml">io.github.maniacx.BudsLink.metainfo.xml</file>
+    <file preprocess="xml-stripblanks" alias="io.github.maniacx.BudsLink.DeviceManager.xml">dbus-interfaces/io.github.maniacx.BudsLink.DeviceManager.xml</file>
+    <file preprocess="xml-stripblanks" alias="io.github.maniacx.BudsLink.Device.xml">dbus-interfaces/io.github.maniacx.BudsLink.Device.xml</file>
 	</gresource>
 </gresources>
