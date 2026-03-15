@@ -201,6 +201,7 @@ export const BudsLinkApplication = GObject.registerClass({
 
         this._window.set_content(this._navView);
         this._window.present();
+        this.sync();
     }
 
     async _initialize() {

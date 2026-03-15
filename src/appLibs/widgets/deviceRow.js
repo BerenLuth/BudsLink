@@ -41,6 +41,9 @@ export const DeviceRowNavPage = GObject.registerClass({
             this._circleBattWidget.updateDeviceIcon(dataHandler.getConfig().commonIcon);
         });
 
+        const props = this._dataHandler.getProps();
+        this._circleBattWidget.updateValues(props.computedBatteryLevel, 'discharging');
+
         this._addNavPage(path, alias, navView, appDir, config);
     }
 
