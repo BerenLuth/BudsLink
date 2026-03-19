@@ -130,7 +130,7 @@ export const DeviceRowNavPage = GObject.registerClass({
         const row = new Adw.ActionRow({child: box});
         this._toggle1Widget = new ToggleButtonsSet(false, this._dataHandler);
         box.append(this._toggle1Widget);
-        this._toggle1Grp.visible = this._dataHandler.getProps.toggle1Visible;
+        this._toggle1Grp.visible = this._dataHandler.getProps().toggle1Visible;
 
         const boxes = [
             config.optionsBox1,
@@ -158,7 +158,7 @@ export const DeviceRowNavPage = GObject.registerClass({
         const row = new Adw.ActionRow({child: box});
         this._toggle2Widget = new ToggleButtonsSet(true, this._dataHandler);
         box.append(this._toggle2Widget);
-        this._toggle2Grp.visible =  this._dataHandler.getProps.toggle2Visible;
+        this._toggle2Grp.visible =  this._dataHandler.getProps().toggle2Visible;
         this._toggle2Grp.add(row);
         page.add(this._toggle2Grp);
     }
