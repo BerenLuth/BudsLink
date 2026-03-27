@@ -36,13 +36,39 @@ export const ConfigureWindow = GObject.registerClass({
         super._init({
             default_width: 650,
             default_height: 650,
+            width_request: 320,
+            height_request: 100,
             modal,
             transient_for: parentWindow ?? null,
+        });
+
+        this._isCompactMode = false;
+
+        this._breakpointCompact = new Adw.Breakpoint({
+            condition: Adw.BreakpointCondition.parse('max-width: 500px'),
+        });
+
+        this._breakpointExpanded = new Adw.Breakpoint({
+            condition: Adw.BreakpointCondition.parse('min-width: 550px'),
+        });
+
+        this.add_breakpoint(this._breakpointCompact);
+        this.add_breakpoint(this._breakpointExpanded);
+
+        this._breakpointCompact.connect('apply', () => {
+            this._isCompactMode = true;
+            this._updateCompactStatus();
+        });
+
+        this._breakpointExpanded.connect('apply', () => {
+            this._isCompactMode = false;
+            this._updateCompactStatus();
         });
 
         this._settings = settings;
         this._devicePath = devicePath;
         this._gettext = _;
+        this.checkBoxWidgets = [];
 
         const pathsString = settings.get_strv('nothing-buds-list').map(JSON.parse);
         this._settingsItems = pathsString.find(info => info.path === devicePath);
@@ -391,6 +417,10 @@ export const ConfigureWindow = GObject.registerClass({
             initialValue: initialMask,
             minRequired: 2,
         });
+
+        checkBoxWidget.compact_mode = this._isCompactMode;
+        this.checkBoxWidgets.push(checkBoxWidget);
+
         return checkBoxWidget;
     };
 
@@ -649,5 +679,10 @@ export const ConfigureWindow = GObject.registerClass({
             default:
                 return action;
         }
+    }
+
+    _updateCompactStatus() {
+        for (const widget of this.checkBoxWidgets)
+            widget.set_property('compact-mode', this._isCompactMode);
     }
 });

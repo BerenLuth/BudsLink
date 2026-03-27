@@ -19,9 +19,35 @@ export const  ConfigureWindow = GObject.registerClass({
         super._init({
             default_width: 650,
             default_height: 650,
+            width_request: 320,
+            height_request: 100,
             modal,
             transient_for: parentWindow ?? null,
         });
+
+        this._isCompactMode = false;
+
+        this._breakpointCompact = new Adw.Breakpoint({
+            condition: Adw.BreakpointCondition.parse('max-width: 500px'),
+        });
+
+        this._breakpointExpanded = new Adw.Breakpoint({
+            condition: Adw.BreakpointCondition.parse('min-width: 550px'),
+        });
+
+        this.add_breakpoint(this._breakpointCompact);
+        this.add_breakpoint(this._breakpointExpanded);
+
+        this._breakpointCompact.connect('apply', () => {
+            this._isCompactMode = true;
+            this._updateCompactStatus();
+        });
+
+        this._breakpointExpanded.connect('apply', () => {
+            this._isCompactMode = false;
+            this._updateCompactStatus();
+        });
+
         this._settings = settings;
         this._devicePath = devicePath;
 
@@ -242,6 +268,8 @@ export const  ConfigureWindow = GObject.registerClass({
                 resetOnApply: true,
             });
 
+            this._longPressCycleWidget.compact_mode = this._isCompactMode;
+
             this._longPressCycleWidget.connect('notify::toggled-value', () => {
                 const toggled = this._longPressCycleWidget.toggled_value;
                 let mask = 0;
@@ -419,6 +447,10 @@ export const  ConfigureWindow = GObject.registerClass({
             pairedDevice[existingPathIndex] = JSON.stringify(existingItem);
             this._settings.set_strv('airpods-list', pairedDevice);
         }
+    }
+
+    _updateCompactStatus() {
+        this._longPressCycleWidget?.set_property('compact-mode', this._isCompactMode);
     }
 });
 

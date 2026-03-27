@@ -3,7 +3,7 @@ import Gtk from 'gi://Gtk';
 import GObject from 'gi://GObject';
 
 export const CheckBoxesRowWidget = GObject.registerClass({
-    GTypeName: 'CheckBoxesGroupWidget',
+    GTypeName: 'BudsLink_CheckBoxesGroupWidget',
     Properties: {
         'toggled-value': GObject.ParamSpec.int(
             'toggled-value',
@@ -11,6 +11,13 @@ export const CheckBoxesRowWidget = GObject.registerClass({
             '',
             GObject.ParamFlags.READWRITE,
             0, 255, 0
+        ),
+        'compact-mode': GObject.ParamSpec.boolean(
+            'compact-mode',
+            '',
+            '',
+            GObject.ParamFlags.READWRITE,
+            false
         ),
     },
 }, class CheckBoxesRowWidget extends Adw.PreferencesRow {
@@ -31,6 +38,7 @@ export const CheckBoxesRowWidget = GObject.registerClass({
             return;
 
         this._checkButtons = [];
+        this._cells = [];
         this._toggledValue = initialValue;
         this._resetOnApply = !!resetOnApply;
         this._minRequired = minRequired;
@@ -69,8 +77,7 @@ export const CheckBoxesRowWidget = GObject.registerClass({
 
         });
 
-        this._hBox = new Gtk.Box({
-            orientation: Gtk.Orientation.HORIZONTAL,
+        this._box = new Gtk.Box({
             spacing: 4,
             homogeneous: true,
             valign: Gtk.Align.CENTER,
@@ -78,17 +85,17 @@ export const CheckBoxesRowWidget = GObject.registerClass({
             margin_bottom: 8,
             margin_start: 8,
             margin_end: 8,
+            visible: false,
         });
 
-        frame.set_child(this._hBox);
-
+        frame.set_child(this._box);
         vbox.append(headerRow);
         vbox.append(frame);
         this.set_child(vbox);
-
         this.updateItems(items);
 
         this._applyButton.connect('clicked', () => this._applyChanges());
+        this.connect('notify::compact-mode', () => this._onCompactMode(this.compact_mode));
 
         if (this._resetOnApply)
             this._updateCheckStates(0);
@@ -142,19 +149,21 @@ export const CheckBoxesRowWidget = GObject.registerClass({
     }
 
     updateItems(items) {
+        this._box.visible = false;
         let child;
-        while ((child = this._hBox.get_first_child()))
-            this._hBox.remove(child);
+        while ((child = this._box.get_first_child()))
+            this._box.remove(child);
 
         this._checkButtons = [];
+        this._cells = [];
 
         for (let i = 0; i < items.length; i++) {
             const {name, icon} = items[i];
             const cell = new Gtk.Box({
-                orientation: Gtk.Orientation.VERTICAL,
                 spacing: 6,
                 halign: Gtk.Align.CENTER,
                 valign: Gtk.Align.CENTER,
+
             });
 
             const image = new Gtk.Image({icon_name: icon, halign: Gtk.Align.CENTER});
@@ -166,12 +175,38 @@ export const CheckBoxesRowWidget = GObject.registerClass({
                 this._updateApplySensitivity();
             });
 
-            this._checkButtons.push(check);
+            cell._label = label;
+            cell._check = check;
             cell.append(image);
             cell.append(label);
             cell.append(check);
-            this._hBox.append(cell);
+            this._cells.push(cell);
+            this._checkButtons.push(check);
+            this._box.append(cell);
         }
+        this._onCompactMode(this.compact_mode);
+    }
+
+    _onCompactMode(mode) {
+        this._box.visible = false;
+        this._box.orientation = mode ? Gtk.Orientation.VERTICAL : Gtk.Orientation.HORIZONTAL;
+
+        this._cells.forEach(cell => {
+            cell.orientation = mode ? Gtk.Orientation.HORIZONTAL : Gtk.Orientation.VERTICAL;
+            cell.halign = mode ? Gtk.Align.START : Gtk.Align.CENTER;
+            this._reorderCell(cell);
+        });
+        this._box.visible = true;
+    }
+
+    _reorderCell(cell) {
+        const label = cell._label;
+        const check = cell._check;
+
+        if (this.compact_mode)
+            cell.reorder_child_after(check, null);
+        else
+            cell.reorder_child_after(check, label);
     }
 });
 
