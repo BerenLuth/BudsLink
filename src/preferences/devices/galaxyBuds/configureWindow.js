@@ -307,6 +307,8 @@ export const ConfigureWindow = GObject.registerClass({
             snapOnStep: true,
         });
 
+        this._stereoBal.compact_mode = this._isCompactMode;
+
         this._stereoBal.connect('notify::value', () => {
             this._updateGsettings('stereo-bal', this._stereoBal.value);
         });
@@ -685,6 +687,8 @@ export const ConfigureWindow = GObject.registerClass({
             snapOnStep: true,
         });
 
+        this._ambCustomLeft.compact_mode = this._isCompactMode;
+
         this._ambCustomLeft.connect('notify::value', () => {
             this._updateGsettings('amb-left', this._ambCustomLeft.value);
         });
@@ -703,6 +707,8 @@ export const ConfigureWindow = GObject.registerClass({
             range: [0, max, 1],
             snapOnStep: true,
         });
+
+        this._ambCustomRight.compact_mode = this._isCompactMode;
 
         this._ambCustomRight.connect('notify::value', () => {
             this._updateGsettings('amb-right', this._ambCustomRight.value);
@@ -723,6 +729,8 @@ export const ConfigureWindow = GObject.registerClass({
             snapOnStep: true,
         });
 
+        this._ambCustomTone.compact_mode = this._isCompactMode;
+
         this._ambCustomTone.connect('notify::value', () => {
             this._updateGsettings('amb-tone', this._ambCustomTone.value);
         });
@@ -733,5 +741,9 @@ export const ConfigureWindow = GObject.registerClass({
     _updateCompactStatus() {
         this._ncCycleLeft?.set_property('compact-mode', this._isCompactMode);
         this._ncCycleRight?.set_property('compact-mode', this._isCompactMode);
+        this._stereoBal?.set_property('compact-mode', this._isCompactMode);
+        this._ambCustomLeft?.set_property('compact-mode', this._isCompactMode);
+        this._ambCustomRight?.set_property('compact-mode', this._isCompactMode);
+        this._ambCustomTone?.set_property('compact-mode', this._isCompactMode);
     }
 });

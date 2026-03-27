@@ -303,6 +303,8 @@ export const  ConfigureWindow = GObject.registerClass({
                 initialValue: this._settingsItems['noti-vol'],
             });
 
+            this._toneWidget.compact_mode = this._isCompactMode;
+
             this._toneWidget.connect('notify::value', () => {
                 this._updateGsettings('noti-vol', this._toneWidget.value);
             });
@@ -451,6 +453,7 @@ export const  ConfigureWindow = GObject.registerClass({
 
     _updateCompactStatus() {
         this._longPressCycleWidget?.set_property('compact-mode', this._isCompactMode);
+        this._toneWidget?.set_property('compact-mode', this._isCompactMode);
     }
 });
 

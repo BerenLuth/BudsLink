@@ -307,6 +307,8 @@ export const ConfigureWindow = GObject.registerClass({
             snapOnStep: true,
         });
 
+        this._baseLevel.compact_mode = this._isCompactMode;
+
         this._baseLevel.connect('notify::value', () => {
             this._updateGsettings('bass-level', this._baseLevel.value);
         });
@@ -684,5 +686,7 @@ export const ConfigureWindow = GObject.registerClass({
     _updateCompactStatus() {
         for (const widget of this.checkBoxWidgets)
             widget.set_property('compact-mode', this._isCompactMode);
+
+        this._baseLevel?.set_property('compact-mode', this._isCompactMode);
     }
 });

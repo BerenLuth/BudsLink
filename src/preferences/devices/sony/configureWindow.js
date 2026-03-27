@@ -418,6 +418,8 @@ export const ConfigureWindow = GObject.registerClass({
                     snapOnStep: true,
                 });
 
+                this._voiceNotificationsVolume.compact_mode = this._isCompactMode;
+
                 this._voiceNotificationsVolume.sensitive = this._voiceNotificationsSwitchRow.active;
                 this._voiceNotificationsVolume.connect('notify::value', () => {
                     this._updateGsettings('voice-vol', this._voiceNotificationsVolume.value);
@@ -593,5 +595,6 @@ export const ConfigureWindow = GObject.registerClass({
 
     _updateCompactStatus() {
         this._ancToggleButtonWidget?.set_property('compact-mode', this._isCompactMode);
+        this._voiceNotificationsVolume?.set_property('compact-mode', this._isCompactMode);
     }
 });
