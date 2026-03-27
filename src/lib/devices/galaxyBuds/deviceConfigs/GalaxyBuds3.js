@@ -8,7 +8,6 @@ export default {
     features: {
         advancedTouchLockForCalls: true,
         advancedTouchIsPinch: true,
-        ambientVolumeMax: 2,
         bixbyWakeup: true,
         callPathControl: true,
         caseBattery: true,
