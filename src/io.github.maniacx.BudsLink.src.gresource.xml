@@ -37,6 +37,7 @@
         <file>lib/devices/airpods/deviceConfigs/AirPods4thGen.js</file>
         <file>lib/devices/airpods/deviceConfigs/AirPods4thGenANC.js</file>
         <file>lib/devices/airpods/deviceConfigs/AirPodsMax.js</file>
+        <file>lib/devices/airpods/deviceConfigs/AirPodsMax2.js</file>
         <file>lib/devices/airpods/deviceConfigs/AirPodsMaxUsbC.js</file>
         <file>lib/devices/airpods/deviceConfigs/AirPodsPro.js</file>
         <file>lib/devices/airpods/deviceConfigs/AirPodsPro2ndGen.js</file>
@@ -45,6 +46,7 @@
         <file>lib/devices/airpods/deviceConfigs/BeatsFitPro.js</file>
         <file>lib/devices/airpods/deviceConfigs/BeatsFlex.js</file>
         <file>lib/devices/airpods/deviceConfigs/BeatsSolo3.js</file>
+        <file>lib/devices/airpods/deviceConfigs/BeatsSolo4.js</file>
         <file>lib/devices/airpods/deviceConfigs/BeatsSoloBuds.js</file>
         <file>lib/devices/airpods/deviceConfigs/BeatsSoloPro.js</file>
         <file>lib/devices/airpods/deviceConfigs/BeatsStudio3.js</file>
@@ -70,6 +72,8 @@
         <file>lib/devices/galaxyBuds/deviceConfigs/GalaxyBuds3.js</file>
         <file>lib/devices/galaxyBuds/deviceConfigs/GalaxyBuds3Fe.js</file>
         <file>lib/devices/galaxyBuds/deviceConfigs/GalaxyBuds3Pro.js</file>
+        <file>lib/devices/galaxyBuds/deviceConfigs/GalaxyBuds4.js</file>
+        <file>lib/devices/galaxyBuds/deviceConfigs/GalaxyBuds4Pro.js</file>
         <file>lib/devices/galaxyBuds/deviceConfigs/GalaxyBudsCore.js</file>
         <file>lib/devices/galaxyBuds/deviceConfigs/GalaxyBudsFe.js</file>
         <file>lib/devices/galaxyBuds/deviceConfigs/GalaxyBudsLive.js</file>
@@ -124,6 +128,7 @@
         <file>lib/devices/sony/deviceConfigs/WF-1000XM3.js</file>
         <file>lib/devices/sony/deviceConfigs/WF-1000XM4.js</file>
         <file>lib/devices/sony/deviceConfigs/WF-1000XM5.js</file>
+        <file>lib/devices/sony/deviceConfigs/WF-1000XM6.js</file>
         <file>lib/devices/sony/deviceConfigs/WF-C500.js</file>
         <file>lib/devices/sony/deviceConfigs/WF-C510.js</file>
         <file>lib/devices/sony/deviceConfigs/WF-C700N.js</file>
