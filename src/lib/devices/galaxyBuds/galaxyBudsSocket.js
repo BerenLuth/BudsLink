@@ -144,6 +144,16 @@ export const GalaxyBudsSocket = GObject.registerClass({
         const {id, payload} = resp;
 
         switch (id) {
+            case GalaxyBudsMsgIds.FW_VERSION:
+                this._log.info('Parse FirmwareVersion');
+                this._parseFirmwareVersion(payload);
+                break;
+
+            case GalaxyBudsMsgIds.FW_VERSION2:
+                this._log.info('Parse FirmwareVersion2');
+                this._parseFirmwareVersion2(payload);
+                break;
+
             case GalaxyBudsMsgIds.EXTENDED_STATUS_UPDATED:
                 this._parseExtendedStatusUpdate(payload);
                 if (!this._firstExtendedStatusRecieved) {
@@ -200,6 +210,26 @@ export const GalaxyBudsSocket = GObject.registerClass({
 
     postConnectInitialization() {
         this.sendMessage(this._encode(GalaxyBudsMsgIds.EXTENDED_STATUS_UPDATED));
+    }
+
+    _parseFirmwareVersion(payload) {
+        if (!payload || payload.length < 13)
+            return;
+
+        const info = String.fromCharCode(...payload.slice(1, 13));
+
+        this._log.info(`Firmware: ${info}`);
+        this._callbacks?.updateFirmwareInfo?.(info);
+    }
+
+    _parseFirmwareVersion2(payload) {
+        if (!payload || payload.length < 14)
+            return;
+
+        const info = String.fromCharCode(...payload.slice(2, 14));
+
+        this._log.info(`Firmware: ${info}`);
+        this._callbacks?.updateFirmwareInfo?.(info);
     }
 
     _processBattery(battery) {

@@ -71,12 +71,6 @@ export const  ConfigureWindow = GObject.registerClass({
         toolViewBar.set_content(page);
         this.set_content(toolViewBar);
 
-        const aliasGroup = new Adw.PreferencesGroup({
-            title: `MAC: ${mac}`,
-        });
-
-        page.add(aliasGroup);
-
         const iconList = modelData.batteryType === 1 ? supportedAudioSingleIcons
             : supportedAudioDualIcons;
 
@@ -88,6 +82,7 @@ export const  ConfigureWindow = GObject.registerClass({
         }
 
         const iconSelector = new IconSelectorWidget({
+            gtxt: _,
             grpTitle: _('Icon'),
             rowTitle: _('Select Icon'),
             rowSubtitle: _('Select the icon used for the indicator and quick menu'),
@@ -95,6 +90,7 @@ export const  ConfigureWindow = GObject.registerClass({
             initialIcon: this._settingsItems['icon'],
             caseIconList,
             initialCaseIcon,
+            mac,
         });
 
         iconSelector.connect('notify::selected-icon', () => {

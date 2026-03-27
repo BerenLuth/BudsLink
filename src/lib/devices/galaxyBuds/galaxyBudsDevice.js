@@ -91,6 +91,7 @@ export const GalaxyBudsDevice = GObject.registerClass({
 
 
         this._callbacks = {
+            updateFirmwareInfo: this.updateFirmwareInfo.bind(this),
             updateExtendedStatusStarted: this.updateExtendedStatusStarted.bind(this),
             updateExtendedStatusEnded: this.updateExtendedStatusEnded.bind(this),
             updateBatteryProps: this.updateBatteryProps.bind(this),
@@ -183,6 +184,7 @@ export const GalaxyBudsDevice = GObject.registerClass({
             modelId: this._modelId,
             alias: this._alias,
             icon: this._commonIcon,
+            'fw-version': '',
 
             ...this._features.caseBattery && {
                 'case': this._caseIcon,
@@ -685,6 +687,11 @@ export const GalaxyBudsDevice = GObject.registerClass({
             this._mediaController?.destroy();
             this._mediaController = null;
         }
+    }
+
+    updateFirmwareInfo(fwVersion) {
+        this._settingsItems['fw-version'] = fwVersion ?? '';
+        this._updateGsettings();
     }
 
     updateBatteryProps(props) {

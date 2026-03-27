@@ -103,6 +103,8 @@ export const GalaxyBudsMsgIds = {
     FIND_MY_EARBUDS_START: 0xA0,
     FIND_MY_EARBUDS_STOP: 0xA1,
     FIND_MY_EARBUDS_ON_WEARING_START: 0xA6,
+    FW_VERSION: 0xB4,
+    FW_VERSION2: 0x68,
 };
 
 export const LegacyMsgIds = {
