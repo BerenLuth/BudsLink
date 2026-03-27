@@ -397,7 +397,9 @@ export const ConfigureWindow = GObject.registerClass({
             return;
 
         this._touchControlDoubleCall = new Adw.SwitchRow({
-            title: _('Double Tap to Answer Call or End Call'),
+            title: this._features.advancedTouchIsPinch
+                ? _('Pinch to Answer Call or End Call')
+                : _('Double Tap to Answer Call or End Call'),
         });
 
         this._touchControlDoubleCall.active = this._settingsItems['tp-adv-call-double'];
@@ -410,7 +412,9 @@ export const ConfigureWindow = GObject.registerClass({
         this._touchControlGroup.add(this._touchControlDoubleCall);
 
         this._touchControlHoldCall = new Adw.SwitchRow({
-            title: _('Touch and Hold to Decline Call'),
+            title: this._features.advancedTouchIsPinch
+                ? _('Pinch and Hold to Decline Call')
+                : _('Touch and Hold to Decline Call'),
         });
 
         this._touchControlHoldCall.active = this._settingsItems['tp-adv-call-hold'];
