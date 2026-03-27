@@ -317,7 +317,9 @@ export const GalaxyBudsSocket = GObject.registerClass({
         if (enabled === null)
             return;
 
-        this._callbacks?.updateAmbientSoundOnOff?.(enabled);
+        const mode = enabled ? GalaxyBudsAnc.AmbientSound : GalaxyBudsAnc.Off;
+
+        this._callbacks?.updateNCModes?.(mode);
     }
 
     _processAmbientVoiceFocusDecoder(byte) {
@@ -346,7 +348,9 @@ export const GalaxyBudsSocket = GObject.registerClass({
         if (enabled === null)
             return;
 
-        this._callbacks?.updateNCOnOff?.(enabled);
+        const mode = enabled ? GalaxyBudsAnc.NoiseReduction : GalaxyBudsAnc.Off;
+
+        this._callbacks?.updateNCModes?.(mode);
     }
 
     _processNCModes(byte) {
@@ -675,9 +679,9 @@ export const GalaxyBudsSocket = GObject.registerClass({
         this._sendPacket(GalaxyBudsMsgIds.MANAGER_INFO, payload);
     }
 
-    setAmbientSoundOnOff(enabled) {
+    setAmbientSoundOnOff(mode) {
         this._log.info('Set AmbientSoundOnOff');
-        const payload = [enabled ? 1 : 0];
+        const payload = [mode === GalaxyBudsAnc.AmbientSound ? 1 : 0];
         this._sendPacket(GalaxyBudsMsgIds.SET_AMBIENT_MODE, payload);
     }
 
@@ -693,9 +697,9 @@ export const GalaxyBudsSocket = GObject.registerClass({
         this._sendPacket(GalaxyBudsMsgIds.AMBIENT_VOLUME, payload);
     }
 
-    setNCOnOff(enabled) {
+    setNCOnOff(mode) {
         this._log.info('Set NCOnOff');
-        const payload = [enabled ? 1 : 0];
+        const payload = [mode === GalaxyBudsAnc.NoiseReduction ? 1 : 0];
         this._sendPacket(GalaxyBudsMsgIds.SET_NOISE_REDUCTION, payload);
     }
 
