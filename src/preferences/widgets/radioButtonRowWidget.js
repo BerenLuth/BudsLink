@@ -2,6 +2,7 @@ import Adw from 'gi://Adw';
 import Gtk from 'gi://Gtk';
 import Gdk from 'gi://Gdk';
 import GObject from 'gi://GObject';
+import Pango from 'gi://Pango';
 
 export const RadioButtonRowWidget = GObject.registerClass({
     GTypeName: 'RadioButtonRowWidget',
@@ -43,10 +44,11 @@ export const RadioButtonRowWidget = GObject.registerClass({
 
         this._radioBox = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
-            spacing: 6,
-            margin_start: 12,
-            margin_end: 12,
-            margin_bottom: 6,
+            homogeneous: true,
+            spacing: 12,
+            margin_start: 18,
+            margin_end: 18,
+            margin_bottom: 12,
             can_focus: false,
         });
 
@@ -54,10 +56,20 @@ export const RadioButtonRowWidget = GObject.registerClass({
 
         options.forEach((label, index) => {
             const btn = new Gtk.CheckButton({
-                label,
                 group,
                 halign: Gtk.Align.START,
             });
+
+            const lbl = new Gtk.Label({
+                label,
+                wrap: true,
+                wrap_mode: Pango.WrapMode.WORD_CHAR,
+                hexpand: true,
+                margin_start: 6,
+                css_classes: ['caption-heading'],
+            });
+
+            btn.set_child(lbl);
 
             if (!group)
                 group = btn;

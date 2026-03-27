@@ -43,7 +43,7 @@ export const CheckBoxesRowWidget = GObject.registerClass({
         this._resetOnApply = !!resetOnApply;
         this._minRequired = minRequired;
 
-        const vbox = new Gtk.Box({
+        this._vBox = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
             spacing: 12,
         });
@@ -70,13 +70,6 @@ export const CheckBoxesRowWidget = GObject.registerClass({
 
         headerRow.add_suffix(this._applyButton);
 
-        const frame = new Gtk.Frame({
-            margin_bottom: 12,
-            margin_start: 12,
-            margin_end: 12,
-
-        });
-
         this._box = new Gtk.Box({
             spacing: 4,
             homogeneous: true,
@@ -88,10 +81,9 @@ export const CheckBoxesRowWidget = GObject.registerClass({
             visible: false,
         });
 
-        frame.set_child(this._box);
-        vbox.append(headerRow);
-        vbox.append(frame);
-        this.set_child(vbox);
+        this._vBox.append(headerRow);
+        this._vBox.append(this._box);
+        this.set_child(this._vBox);
         this.updateItems(items);
 
         this._applyButton.connect('clicked', () => this._applyChanges());
@@ -167,8 +159,11 @@ export const CheckBoxesRowWidget = GObject.registerClass({
             });
 
             const image = new Gtk.Image({icon_name: icon, halign: Gtk.Align.CENTER});
-            const label = new Gtk.Label({label: name, halign: Gtk.Align.CENTER});
-            label.add_css_class('caption-heading');
+            const label = new Gtk.Label({
+                label: name,
+                halign: Gtk.Align.CENTER,
+                css_classes: ['caption-heading'],
+            });
 
             const check = new Gtk.CheckButton({halign: Gtk.Align.CENTER});
             check.connect('toggled', () => {
@@ -189,21 +184,23 @@ export const CheckBoxesRowWidget = GObject.registerClass({
 
     _onCompactMode(mode) {
         this._box.visible = false;
+        this._vBox.spacing = mode ? 0 : 12;
+        this._box.spacing = mode ? 12 : 4;
         this._box.orientation = mode ? Gtk.Orientation.VERTICAL : Gtk.Orientation.HORIZONTAL;
 
         this._cells.forEach(cell => {
             cell.orientation = mode ? Gtk.Orientation.HORIZONTAL : Gtk.Orientation.VERTICAL;
             cell.halign = mode ? Gtk.Align.START : Gtk.Align.CENTER;
-            this._reorderCell(cell);
+            this._reorderCell(cell, mode);
         });
         this._box.visible = true;
     }
 
-    _reorderCell(cell) {
+    _reorderCell(cell, mode) {
         const label = cell._label;
         const check = cell._check;
 
-        if (this.compact_mode)
+        if (mode)
             cell.reorder_child_after(check, null);
         else
             cell.reorder_child_after(check, label);
