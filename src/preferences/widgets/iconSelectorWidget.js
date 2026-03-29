@@ -4,7 +4,7 @@ import Gtk from 'gi://Gtk';
 import Adw from 'gi://Adw';
 
 export const IconSelectorWidget = GObject.registerClass({
-    GTypeName: 'BBM_IconSelectorWidget',
+    GTypeName: 'BudsLink_IconSelectorWidget',
     Properties: {
         'selected-icon': GObject.ParamSpec.string(
             'selected-icon',

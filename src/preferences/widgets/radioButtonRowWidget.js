@@ -5,7 +5,7 @@ import GObject from 'gi://GObject';
 import Pango from 'gi://Pango';
 
 export const RadioButtonRowWidget = GObject.registerClass({
-    GTypeName: 'RadioButtonRowWidget',
+    GTypeName: 'BudsLink_RadioButtonRowWidget',
     Properties: {
         'toggled-value': GObject.ParamSpec.int(
             'toggled-value',

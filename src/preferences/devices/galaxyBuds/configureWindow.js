@@ -15,7 +15,7 @@ import {
 } from '../../../lib/devices/galaxyBuds/galaxyBudsConfig.js';
 
 export const ConfigureWindow = GObject.registerClass({
-    GTypeName: 'BluetoothBatteryMeter_GalaxyBudsConfigureWindow',
+    GTypeName: 'BudsLink_GalaxyBudsConfigureWindow',
 }, class ConfigureWindow extends Adw.Window {
     _init(settings, mac, devicePath, parentWindow, _, modal = false) {
         super._init({
