@@ -106,6 +106,8 @@
         <file>lib/devices/nothingBuds/deviceConfigs/NothingEara.js</file>
         <file>lib/devices/nothingBuds/deviceConfigs/NothingHeadphone1.js</file>
 
+        <file>lib/devices/notifier.js</file>
+
         <file>lib/devices/profileManager.js</file>
         <file>lib/devices/socketByProfile.js</file>
 

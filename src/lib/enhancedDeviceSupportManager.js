@@ -2,6 +2,7 @@
 import GObject from 'gi://GObject';
 
 import {getBluezDeviceProxy} from './bluezDeviceProxy.js';
+import {Notifier} from './devices/notifier.js';
 import {ProfileManager} from './devices/profileManager.js';
 import {AirpodsDevice, isAirpods, DeviceTypeAirpods} from './devices/airpods/airpodsDevice.js';
 import {
@@ -23,7 +24,12 @@ export const EnhancedDeviceSupportManager = GObject.registerClass({
         this._settings = toggle.settings;
         this._extPath = toggle.extPath;
         this._deviceMap = new Map();
-        this._profileManager = new ProfileManager();
+        this._notifier = new Notifier(toggle);
+        this._profileManager = new ProfileManager(this._notifyCb.bind(this));
+    }
+
+    _notifyCb(type) {
+        this._notifier.notifyProfileRegisteredError(type);
     }
 
     updateDeviceMapCb(path, dataHandler) {
@@ -211,5 +217,7 @@ export const EnhancedDeviceSupportManager = GObject.registerClass({
             this._removedEnhancedDevice(path);
 
         this._profileManager = null;
+        this._notifier?.destroy();
+        this._notifier = null;
     }
 });
