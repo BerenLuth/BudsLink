@@ -1,7 +1,11 @@
 <node>
   <interface name="io.github.maniacx.BudsLink.DeviceManager">
-    <method name="HoldService"/>
-    <method name="ReleaseService"/>
+    <method name="HoldService">
+      <arg name="clientId" type="s" direction="in"/>
+    </method>
+    <method name="ReleaseService">
+      <arg name="clientId" type="s" direction="in"/>
+    </method>
     <method name="ServiceVersion">
       <arg name="version" type="s" direction="out"/>
     </method>

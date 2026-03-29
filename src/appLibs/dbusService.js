@@ -9,7 +9,9 @@ import {getBluezDeviceProxy} from '../lib/bluezDeviceProxy.js';
 const DEVICE_INTERFACE_NAME = 'io.github.maniacx.BudsLink.Device';
 const MANAGER_INTERFACE_NAME = 'io.github.maniacx.BudsLink.DeviceManager';
 const SERVICE_VERSION = '0.0.1';
-const UPDATE_INTERVAL = 200;
+const STATE_UPDATE_INTERVAL = 200; // msecs
+const HEARTBEAT_INTERVAL = 120; // secs. Widget should use this as Heartbeat Interval
+const SERVICE_HEARTBEAT_INTERVAL = HEARTBEAT_INTERVAL + 15;
 
 function loadIntrospectionXML(alias) {
     const resourcePath = `/io/github/maniacx/BudsLink/${alias}`;
@@ -119,16 +121,17 @@ class Device extends GObject.Object {
         if (this._stateDebounceId !== 0)
             return;
 
-        this._stateDebounceId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, UPDATE_INTERVAL, () => {
-            this._emitPropertiesChanged({
-                State: GLib.Variant.new_string(
-                    JSON.stringify(this._state)
-                ),
-            });
+        this._stateDebounceId = GLib.timeout_add(
+            GLib.PRIORITY_DEFAULT, STATE_UPDATE_INTERVAL, () => {
+                this._emitPropertiesChanged({
+                    State: GLib.Variant.new_string(
+                        JSON.stringify(this._state)
+                    ),
+                });
 
-            this._stateDebounceId = 0;
-            return GLib.SOURCE_REMOVE;
-        }
+                this._stateDebounceId = 0;
+                return GLib.SOURCE_REMOVE;
+            }
         );
     }
 
@@ -183,11 +186,9 @@ class DbusService extends GObject.Object {
         this._log = createLogger('DbusService');
         this._connection = connection;
         this._deviceMap = new Map();
-        this._holders = new Set();
+        this._holders = new Map();
         this._holdServiceCb = holdServiceCb;
         this._releaseServiceCb = releaseServiceCb;
-
-        this._ownNameId = 0;
 
         const introspection = Gio.DBusNodeInfo.new_for_xml(MANAGER_INTROSPECTION_XML);
         this._ifaceInfo = introspection.lookup_interface(MANAGER_INTERFACE_NAME);
@@ -199,16 +200,6 @@ class DbusService extends GObject.Object {
             this._onGetProperty.bind(this),
             null
         );
-
-        this._nameWatcherId = this._connection.signal_subscribe(
-            'org.freedesktop.DBus',
-            'org.freedesktop.DBus',
-            'NameOwnerChanged',
-            '/org/freedesktop/DBus',
-            null,
-            Gio.DBusSignalFlags.NONE,
-            this._onNameOwnerChanged.bind(this)
-        );
     }
 
     _onMethodCall(conn, sender, objectPath, ifaceName, methodName, parameters, invocation) {
@@ -216,17 +207,49 @@ class DbusService extends GObject.Object {
             return;
 
         if (methodName === 'HoldService') {
-            if (!this._holders.has(sender)) {
-                this._holders.add(sender);
-                this._holdServiceCb();
+            const [clientId] = parameters.deepUnpack();
+            if (!clientId) {
+                invocation.return_value(null);
+                return;
             }
+
+            if (this._holders.has(clientId))
+                GLib.source_remove(this._holders.get(clientId));
+            else if (this._holders.size === 0)
+                this._holdServiceCb();
+
+            const timerId = GLib.timeout_add_seconds(
+                GLib.PRIORITY_DEFAULT,
+                SERVICE_HEARTBEAT_INTERVAL,
+                () => {
+                    this._holders.delete(clientId);
+                    if (this._holders.size === 0)
+                        this._releaseServiceCb();
+                    return GLib.SOURCE_REMOVE;
+                }
+            );
+
+            this._holders.set(clientId, timerId);
+            this._log.info(`HoldService: client ${clientId}, holders=${this._holders.size}`);
+
             invocation.return_value(null);
         } else if (methodName === 'ReleaseService') {
-            if (this._holders.delete(sender))
+            const [clientId] = parameters.deepUnpack();
+            if (!clientId || !this._holders.has(clientId)) {
+                invocation.return_value(null);
+                return;
+            }
+
+            GLib.source_remove(this._holders.get(clientId));
+            this._holders.delete(clientId);
+
+            this._log.info(`ReleaseService: client ${clientId}, holders=${this._holders.size}`);
+
+            if (this._holders.size === 0)
                 this._releaseServiceCb();
 
             invocation.return_value(null);
-        } else if  (methodName === 'ServiceVersion') {
+        } else if (methodName === 'ServiceVersion') {
             invocation.return_value(GLib.Variant.new('(s)', [SERVICE_VERSION]));
         } else if (methodName === 'ListDevices') {
             const devices = [...this._deviceMap.values()].map(v => v.objectPath);
@@ -288,32 +311,20 @@ class DbusService extends GObject.Object {
         this._log.info(`Device removed: ${objectPath}`);
     }
 
-    _onNameOwnerChanged(_conn, _sender, _path, _iface, _signal, params) {
-        const [name, oldOwner, newOwner] = params.deepUnpack();
-
-        if (!oldOwner || newOwner)
-            return;
-
-        if (!this._holders.delete(name))
-            return;
-
-        this._releaseServiceCb();
-    }
-
     destroy() {
         for (const {device} of this._deviceMap.values())
             device.destroy();
 
         this._deviceMap.clear();
 
+        for (const timerId of this._holders.values())
+            GLib.source_remove(timerId);
+
+        this._holders.clear();
+
         if (this._registrationId && this._connection) {
             this._connection.unregister_object(this._registrationId);
             this._registrationId = 0;
-        }
-
-        if (this._nameWatcherId) {
-            this._connection.signal_unsubscribe(this._nameWatcherId);
-            this._nameWatcherId = 0;
         }
 
         this._connection = null;
