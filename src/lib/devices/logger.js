@@ -5,8 +5,9 @@ import GLib from 'gi://GLib';
 
 const MAX_LOG_BYTES = 1024 * 1024;
 
-const LOG_INFO = true;
-const LOG_BYTES = true;
+let _settings = null;
+let LOG_ENABLED = true;
+
 const LogDir = GLib.build_filenamev([GLib.get_user_state_dir(), 'log']);
 GLib.mkdir_with_parents(LogDir, 0o755);
 
@@ -53,16 +54,31 @@ function WriteLogLine(prefix, msg) {
 
 export function createLogger(tag) {
     return {
-        info: LOG_INFO
-            ? (...args) => WriteLogLine('INF', `[${tag}] ${args.join(' ')}`)
-            : () => {},
+        info: (...args) => {
+            if (!LOG_ENABLED)
+                return;
+            WriteLogLine('INF', `[${tag}] ${args.join(' ')}`);
+        },
+
         error: (err, msg = '') => {
             const text = `${msg} ${err instanceof Error ? err.stack : String(err)}`.trim();
             WriteLogLine('ERR', `[${tag}] ${text}`);
         },
-        bytes: LOG_BYTES
-            ? (...args) => WriteLogLine('BYT', `[${tag}] ${args.join(' ')}`)
-            : () => {},
+
+        bytes: (...args) => {
+            if (!LOG_ENABLED)
+                return;
+            WriteLogLine('BYT', `[${tag}] ${args.join(' ')}`);
+        },
     };
+}
+
+export function initLogger(settings) {
+    _settings = settings;
+    LOG_ENABLED = _settings.get_boolean('logging-enabled');
+
+    _settings.connect('changed::logging-enabled', () => {
+        LOG_ENABLED = _settings.get_boolean('logging-enabled');
+    });
 }
 

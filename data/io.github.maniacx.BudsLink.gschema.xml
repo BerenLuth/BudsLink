@@ -7,6 +7,9 @@
         <key name="accent-color" type="s">
             <default>'system'</default>
         </key>
+        <key name="logging-enabled" type="b">
+            <default>false</default>
+        </key>
         <key name="attenuated-on-destroy-info" type="as">
             <default>[]</default>
         </key>

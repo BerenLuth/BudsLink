@@ -9,7 +9,7 @@ import GLibUnix from 'gi://GLibUnix';
 import {gettext as _} from 'gettext';
 
 import {registerDestroyableType, destroyAllSignals} from './appLibs/signalTracker.js';
-import {createLogger} from './lib/devices/logger.js';
+import {initLogger, createLogger} from './lib/devices/logger.js';
 import {DeviceRowNavPage} from './appLibs/widgets/deviceRow.js';
 import {SettingsButton} from './appLibs/widgets/settingsButton.js';
 import {ThemeManager} from './appLibs/themeManager.js';
@@ -123,6 +123,7 @@ export const BudsLinkApplication = GObject.registerClass({
 
     _onStartup() {
         this.settings = new Gio.Settings({schema_id: AppId});
+        initLogger(this.settings);
         this._themeManager = new ThemeManager(this, this.settings);
         initConfigureWindowLauncher(this.settings, _);
 
