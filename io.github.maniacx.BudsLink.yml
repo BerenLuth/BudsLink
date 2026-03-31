@@ -15,12 +15,6 @@ finish-args:
   - --socket=pulseaudio
   - --device=dri
 
-  # Environment variables
-  - --env=GJS_DEBUG_TOPICS=JS ERROR;JS LOG
-
-  # Developer permissions
-  - --allow=devel
-
 modules:
   - name: BudsLink
     buildsystem: meson
