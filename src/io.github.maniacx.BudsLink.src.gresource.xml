@@ -21,8 +21,6 @@
         <file>appLibs/widgets/sliderBin.js</file>
         <file>appLibs/widgets/toggleButtonsSet.js</file>
 
-        <file>io.github.maniacx.BudsLink.js</file>
-
         <file>lib/bluezDeviceProxy.js</file>
         <file>lib/dataHandler.js</file>
         <file>lib/enhancedDeviceSupportManager.js</file>
