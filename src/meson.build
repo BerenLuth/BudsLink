@@ -21,8 +21,8 @@ app_resource = gnome.compile_resources(
 )
 
 install_subdir(
-  '../src/icons',
-  install_dir: get_option('prefix'),
+  '../src/icons/hicolor/scalable/actions',
+  install_dir: get_option('datadir') / 'icons' / 'hicolor' / 'scalable'
 )
 
 install_data(

@@ -30,7 +30,7 @@ const SIGINT = 2;
 const SIGTERM = 15;
 
 const AppId = pkg.name; // eslint-disable-line no-undef
-const AppDir = pkg.prefix; // eslint-disable-line no-undef
+const dataDir = pkg.datadir; // eslint-disable-line no-undef
 
 
 registerDestroyableType(Gtk.Widget);
@@ -135,7 +135,7 @@ export const BudsLinkApplication = GObject.registerClass({
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         );
 
-        const iconsPath = GLib.build_filenamev([AppDir, 'icons']);
+        const iconsPath = GLib.build_filenamev([dataDir, 'icons']);
         const iconTheme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default());
         iconTheme.add_search_path(iconsPath);
 
@@ -260,7 +260,7 @@ export const BudsLinkApplication = GObject.registerClass({
 
                     if (this._showGui) {
                         props.row = new DeviceRowNavPage(path, dev.alias,
-                            this._navView, this._devicesGrp, AppDir, props.dataHandler);
+                            this._navView, this._devicesGrp, dataDir, props.dataHandler);
                     }
                 }
 
@@ -269,7 +269,7 @@ export const BudsLinkApplication = GObject.registerClass({
                         props.row = null;
                     } else if (this._showGui && !props.row && props.dataHandler) {
                         props.row = new DeviceRowNavPage(path, dev.alias,
-                            this._navView, this._devicesGrp, AppDir, props.dataHandler);
+                            this._navView, this._devicesGrp, dataDir, props.dataHandler);
                     }
                 }
             } else if (dev.connected) {
@@ -281,7 +281,7 @@ export const BudsLinkApplication = GObject.registerClass({
 
                     if (this._showGui) {
                         props.row = new DeviceRowNavPage(path, dev.alias,
-                            this._navView, this._devicesGrp, AppDir, props.dataHandler);
+                            this._navView, this._devicesGrp, dataDir, props.dataHandler);
                     }
                 }
 

@@ -12,14 +12,14 @@ import {OptionsBox} from './optionsBox.js';
 export const DeviceRowNavPage = GObject.registerClass({
     GTypeName: 'BudsLink_DeviceRowNavPage',
 }, class DeviceRowNavPage extends Adw.ActionRow {
-    _init(path, alias, navView, devicesGrp, appDir, dataHandler) {
+    _init(path, alias, navView, devicesGrp, dataDir, dataHandler) {
         super._init({activatable: true});
         this.title = alias;
         this._dataHandler = dataHandler;
         const config = dataHandler.getConfig();
 
         this._circleBattWidget =
-            new CircleBatteryIcon(config.commonIcon, appDir, {valign: Gtk.Align.CENTER});
+            new CircleBatteryIcon(config.commonIcon, dataDir, {valign: Gtk.Align.CENTER});
 
         this.add_prefix(this._circleBattWidget);
         this.add_suffix(new Gtk.Image({icon_name: 'go-next-symbolic'}));
@@ -44,10 +44,10 @@ export const DeviceRowNavPage = GObject.registerClass({
         const props = this._dataHandler.getProps();
         this._circleBattWidget.updateValues(props.computedBatteryLevel, 'discharging');
 
-        this._addNavPage(path, alias, navView, appDir, config);
+        this._addNavPage(path, alias, navView, dataDir, config);
     }
 
-    _addNavPage(path, alias, navView, appDir, config) {
+    _addNavPage(path, alias, navView, dataDir, config) {
         const toolbarView = new Adw.ToolbarView();
         const headerBar = new Adw.HeaderBar({
             decoration_layout: ':minimize,close',
@@ -64,7 +64,7 @@ export const DeviceRowNavPage = GObject.registerClass({
         navView.add(this._navPage);
 
         const devicePage = new Adw.PreferencesPage();
-        this._addBatteryBox(devicePage, alias, appDir, config);
+        this._addBatteryBox(devicePage, alias, dataDir, config);
 
         const toggleSet1Enabled = config.toggle1Button1Icon && config.toggle1Button2Icon;
         if (toggleSet1Enabled)
@@ -85,7 +85,7 @@ export const DeviceRowNavPage = GObject.registerClass({
         });
     }
 
-    _addBatteryBox(page, alias, appDir, config) {
+    _addBatteryBox(page, alias, dataDir, config) {
         const grp = new Adw.PreferencesGroup({title: alias});
         const box = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
@@ -114,7 +114,7 @@ export const DeviceRowNavPage = GObject.registerClass({
             margin_top: 8,
             css_classes: ['heading'],
         });
-        this._battWidget = new BatterySetWidget(appDir, this._dataHandler);
+        this._battWidget = new BatterySetWidget(dataDir, this._dataHandler);
         box.append(label);
         box.append(this._battWidget);
         grp.add(row);

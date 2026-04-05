@@ -9,7 +9,7 @@ import {CircleBatteryIcon} from './circleBatteryIconWidget.js';
 export const BatterySetWidget = GObject.registerClass({
     GTypeName: 'BudsLink_BatterySetWidget',
 }, class BatterySetWidget extends Gtk.Box {
-    _init(appDir, dataHandler) {
+    _init(dataDir, dataHandler) {
         super._init({
             spacing: 32,
             halign: Gtk.Align.CENTER,
@@ -20,14 +20,14 @@ export const BatterySetWidget = GObject.registerClass({
         this._config = dataHandler.getConfig();
 
         if (this._config.battery1Icon)
-            this._buildBattery(1, appDir);
+            this._buildBattery(1, dataDir);
 
         if (this._config.battery2Icon)
-            this._buildBattery(2, appDir);
+            this._buildBattery(2, dataDir);
 
 
         if (this._config.battery3Icon)
-            this._buildBattery(3, appDir);
+            this._buildBattery(3, dataDir);
 
 
         const props = this._dataHandler.getProps();
@@ -55,7 +55,7 @@ export const BatterySetWidget = GObject.registerClass({
         }
     }
 
-    _buildBattery(index, appDir) {
+    _buildBattery(index, dataDir) {
         const verticalBox = new Gtk.Box({
             orientation: Gtk.Orientation.VERTICAL,
             spacing: 2,
@@ -64,7 +64,7 @@ export const BatterySetWidget = GObject.registerClass({
 
         const iconPath = this._config[`battery${index}Icon`];
 
-        const icon = new CircleBatteryIcon(iconPath, appDir);
+        const icon = new CircleBatteryIcon(iconPath, dataDir);
 
         const label = new Gtk.Label({
             halign: Gtk.Align.CENTER,

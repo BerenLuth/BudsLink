@@ -9,7 +9,7 @@ import {VectorImages} from './circularBatteryVectorImages.js';
 
 export const CircleBatteryIcon = GObject.registerClass({
 }, class CircleBatteryIcon extends Gtk.DrawingArea {
-    _init(deviceIcon, appDir, params = {}) {
+    _init(deviceIcon, dataDir, params = {}) {
         const iconSize = 34;
         super._init({
             content_width: iconSize,
@@ -19,7 +19,7 @@ export const CircleBatteryIcon = GObject.registerClass({
 
         this._iconSize = iconSize;
         this._deviceIcon = deviceIcon;
-        this._appDir = appDir;
+        this._dataDir = dataDir;
         this._scaleFactorConnected = false;
         this._fractionalScale = null;
 
@@ -35,7 +35,7 @@ export const CircleBatteryIcon = GObject.registerClass({
         const intendedIconSize = 15;
         const svgSize = 16;
 
-        const iconFolder = `${this._appDir}/icons/hicolor/scalable/actions`;
+        const iconFolder = `${this._dataDir}/icons/hicolor/scalable/actions`;
         const filePath = `${iconFolder}/bbm-${this._deviceIcon}-symbolic.svg`;
 
         const inkRect = getInkBounds(filePath, svgSize);

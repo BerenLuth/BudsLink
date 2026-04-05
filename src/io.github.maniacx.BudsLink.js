@@ -1,5 +1,6 @@
 #!@GJS@ -m
 import GLib from 'gi://GLib';
+
 imports.package.init({
     name: '@PACKAGE_NAME@',
     version: '@PACKAGE_VERSION@',
