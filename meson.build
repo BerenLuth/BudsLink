@@ -17,8 +17,8 @@ subdir('po')
 
 gvc_namespace = 'budslink-gvc'
 
-pkgdatadir = join_paths(get_option('datadir'), gvc_namespace)
-pkglibdir  = join_paths(get_option('libdir'),  gvc_namespace)
+pkgdatadir = join_paths(get_option('datadir'), APP_ID)
+pkglibdir  = join_paths(get_option('libdir'),  APP_ID)
 
 libgvc = subproject(
   'gvc',

@@ -111,7 +111,7 @@ if enable_introspection
     includes: ['Gio-2.0', 'GObject-2.0'],
     extra_args: ['-DWITH_INTROSPECTION', '--quiet'],
     install_dir_gir: pkgdatadir,
-    install_dir_typelib: pkglibdir,
+    install_dir_typelib: join_paths(pkglibdir, 'girepository-1.0'),
     install: true
   )
 endif

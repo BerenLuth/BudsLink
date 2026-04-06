@@ -1,10 +1,3 @@
-import GIRepository from 'gi://GIRepository';
-
-const typelibDir = `${pkg.prefix}/lib/budslink-gvc`;  // eslint-disable-line no-undef
-const repo = GIRepository.Repository.dup_default();
-repo.prepend_search_path(typelibDir);
-repo.prepend_library_path(typelibDir);
-
 export const Gvc = (await import('gi://Gvc')).default;
 
 let control = null;
