@@ -3,6 +3,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 
+import {createLogger} from './logger.js';
 import {Gvc, Volume} from '../../appLibs/gvcProvider.js';
 
 const MEDIA_PLAYER_PREFIX = 'org.mpris.MediaPlayer2.';
@@ -17,6 +18,7 @@ export const MediaController = GObject.registerClass({
 }, class MediaController extends GObject.Object {
     _init(settings, devicePath, previousOnDestroyVolume) {
         super._init();
+        this._log = createLogger('MediaController');
         this._settings = settings;
         this._devicePath = devicePath;
         this._noSymbolMac = devicePath.substring(devicePath.indexOf('dev_') + 4)
@@ -286,8 +288,8 @@ export const MediaController = GObject.registerClass({
                         -1,
                         null
                     );
-                } catch {
-                    console.error('Bluetooth-Battery-Meter: Error call Mpris Pause method');
+                } catch (e) {
+                    this._log.error(`Error call Mpris Pause method. Error: ${e}`);
                 }
                 const status = this._playerProxy?.get_cached_property('PlaybackStatus')?.unpack();
                 this._playbackStatusChangePending = status !== 'Paused';
@@ -302,8 +304,8 @@ export const MediaController = GObject.registerClass({
                         -1,
                         null
                     );
-                } catch {
-                    console.error('Bluetooth-Battery-Meter: Error calling Mpris Play method');
+                } catch (e) {
+                    this._log.error(`Error call Mpris Play method. Error: ${e}`);
                 }
             }
         }
@@ -339,8 +341,8 @@ export const MediaController = GObject.registerClass({
                 'org.mpris.MediaPlayer2.Player',
                 null
             );
-        } catch {
-            console.error('Bluetooth-Battery-Meter: Failed to initialize proxy in player proxy');
+        } catch (e) {
+            this._log.error(`Failed to initialize proxy in player proxy. Error: ${e}`);
             return;
         }
         this._onPlayerProxyReady();
@@ -385,8 +387,8 @@ export const MediaController = GObject.registerClass({
 
             if (res)
                 [names] = res.deepUnpack();
-        } catch {
-            console.error('Bluetooth-Battery-Meter: Error calling ListNames');
+        } catch (e) {
+            this._log.error(`Bluetooth-Battery-Meter: Error calling ListNames. Error: ${e}`);
             return;
         }
 
