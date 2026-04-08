@@ -47,7 +47,7 @@ export const MediaController = GObject.registerClass({
             this._controllerReady = false;
         }
 
-        this._control.connect('state-changed', () => {
+        this._stateChangeId = this._control.connect('state-changed', () => {
             if (this._control.get_state() === Gvc.MixerControlState.READY) {
                 this._onControlReady();
                 this._controllerReady = true;
@@ -171,6 +171,7 @@ export const MediaController = GObject.registerClass({
         this._unmonitorSink();
         if (this._defaultSinkChangedId)
             this._control.disconnect(this._defaultSinkChangedId);
+        this._defaultSinkChangedId = null;
     }
 
     setConversationAwarenessVolume(attenuated, caVolume) {
@@ -293,8 +294,8 @@ export const MediaController = GObject.registerClass({
                 }
                 const status = this._playerProxy?.get_cached_property('PlaybackStatus')?.unpack();
                 this._playbackStatusChangePending = status !== 'Paused';
-                this._playerProxy.connectObject(
-                    'g-properties-changed', () => this._playerPropsChanged(), this);
+                this._playerProxyId = this._playerProxy.connect(
+                    'g-properties-changed', () => this._playerPropsChanged());
             } else {
                 try {
                     await this._playerProxy.call(
@@ -357,8 +358,10 @@ export const MediaController = GObject.registerClass({
     }
 
     _disconnectPlayerProxy() {
-        this._playerProxy?.disconnectObject(this);
+        if (this._playerProxyId)
+            this._playerProxy?.disconnect(this._playerProxyId);
         this._playerProxy = null;
+        this._playerProxyId = null;
     }
 
     async changeActivePlayerState(requestedState) {
@@ -415,15 +418,14 @@ export const MediaController = GObject.registerClass({
 
     destroy() {
         if (this._volumeRampTimeoutId)
-            GLib.remove_source(this._volumeRampTimeoutId);
+            GLib.source_remove(this._volumeRampTimeoutId);
         this._volumeRampTimeoutId = null;
         this._onDestroy();
         this._disconnectController();
         this._disconnectPlayerProxy();
-        if (this._controlSignalId)
-            this._control?.disconnect(this._controlSignalId);
-        this._controlSignalId = null;
-        this._control?.disconnectObject(this);
+        if (this._stateChangeId)
+            this._control?.disconnect(this._stateChangeId);
+        this._stateChangeId = null;
         this._controllerReady = false;
         this._lastPausedPlayer = null;
         this._playbackStatusChangePending = null;

@@ -29,15 +29,15 @@ export class ThemeManager {
     }
 
     _connectSignals() {
-        this._settings.connect(`changed::${MODE_KEY}`, () => {
+        this._modeId = this._settings.connect(`changed::${MODE_KEY}`, () => {
             this._applyDarkMode();
         });
 
-        this._settings.connect(`changed::${ACCENT_KEY}`, () => {
+        this._accentId = this._settings.connect(`changed::${ACCENT_KEY}`, () => {
             this._applyAccentColor();
         });
 
-        this._styleManager.connect('notify::accent-color', () => {
+        this._styleManagerId = this._styleManager.connect('notify::accent-color', () => {
             if (this._settings.get_string(ACCENT_KEY) === ACCENT_SYSTEM)
                 this._applyAccentColor();
         });
@@ -94,6 +94,30 @@ export class ThemeManager {
 
         const css = `:root { --accent-bg-color: var(${accentVar}); }`;
         this._provider.load_from_data(css, -1);
+    }
+
+    destroy() {
+        if (this._settings) {
+            this._settings.disconnect?.(this._modeId);
+            this._settings.disconnect?.(this._accentId);
+        }
+
+        if (this._styleManager && this._styleManagerId)
+            this._styleManager.disconnect(this._styleManagerId);
+
+        if (this._provider) {
+            Gtk.StyleContext.remove_provider_for_display(
+                Gdk.Display.get_default(),
+                this._provider
+            );
+        }
+
+        this._modeId = null;
+        this._accentId = null;
+        this._styleManagerId = null;
+        this._provider = null;
+        this._settings = null;
+        this._styleManager = null;
     }
 }
 

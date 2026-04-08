@@ -128,13 +128,13 @@ export const CircleBatteryIcon = GObject.registerClass({
 
     _drawCircle(cr) {
         if (!this._scaleFactorConnected) {
-            this.connectObject('notify::scale-factor', () => {
+            this._scaleFactorId =  this.connect('notify::scale-factor', () => {
                 const surface = this.get_native()?.get_surface();
                 if (surface) {
                     this._fractionalScale = surface.get_scale();
                     this.queue_draw();
                 }
-            }, this);
+            });
 
             this._scaleFactorConnected = true;
         }
@@ -216,6 +216,12 @@ export const CircleBatteryIcon = GObject.registerClass({
         this._status = status;
         this._percentage = percentage;
         this.queue_draw();
+    }
+
+    destroy() {
+        if (this._scaleFactorId)
+            this.disconnect(this._scaleFactorId);
+        this._scaleFactorId = null;
     }
 });
 

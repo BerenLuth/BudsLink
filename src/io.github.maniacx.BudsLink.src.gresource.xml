@@ -6,7 +6,6 @@
         <file>appLibs/confirueWindowlauncher.js</file>
         <file>appLibs/dbusService.js</file>
         <file>appLibs/gvcProvider.js</file>
-        <file>appLibs/signalTracker.js</file>
         <file>appLibs/themeManager.js</file>
 
         <file>appLibs/widgets/batterySetWidget.js</file>

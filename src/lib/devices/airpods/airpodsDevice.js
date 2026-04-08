@@ -421,10 +421,15 @@ export const AirpodsDevice = GObject.registerClass({
 
     _monitorAirpodsListGsettings(monitor) {
         if (monitor) {
-            this._settings?.connectObject('changed::airpods-list', () =>
-                this._updateGsettingsProps(), this);
+            if (this._settingsHandlerId)
+                this._settings?.disconnect(this._settingsHandlerId);
+
+            this._settingsHandlerId = this._settings?.connect('changed::airpods-list', () =>
+                this._updateGsettingsProps());
         } else {
-            this._settings?.disconnectObject(this);
+            if (this._settingsHandlerId)
+                this._settings?.disconnect(this._settingsHandlerId);
+            this._settingsHandlerId = null;
         }
     }
 
@@ -461,7 +466,7 @@ export const AirpodsDevice = GObject.registerClass({
 
         this.updateDeviceMapCb(this._devicePath, this.dataHandler);
 
-        this.dataHandler.connectObject(
+        this._dataHandlerId = this.dataHandler.connect(
             'ui-action', (o, command, value) => {
                 if (command === 'toggle1State')
                     this._toggle1ButtonClicked(value);
@@ -474,8 +479,7 @@ export const AirpodsDevice = GObject.registerClass({
 
                 if (command === 'settingsButtonClicked')
                     this._settingsButtonClicked();
-            },
-            this
+            }
         );
     }
 
@@ -487,16 +491,18 @@ export const AirpodsDevice = GObject.registerClass({
             this._mediaController = new MediaController(this._settings, this._devicePath,
                 this._previousOnDestroyVolume);
 
-            this._mediaController.connectObject(
+            this._mediaHandlerId = this._mediaController.connect(
                 'notify::output-is-a2dp', () => {
                     this._outputIsA2dp = this._mediaController.output_is_a2dp;
                     this._updatetoggleVisibility();
-                },
-                this
+                }
             );
             this._outputIsA2dp = this._mediaController.output_is_a2dp;
         } else if (!enableMediaController) {
-            this._mediaController?.disconnectObject(this);
+            if (this._mediaHandlerId) {
+                this._mediaController?.disconnect(this._mediaHandlerId);
+                this._mediaHandlerId = null;
+            }
             this._mediaController?.destroy();
             this._mediaController = null;
         }
@@ -783,10 +789,16 @@ export const AirpodsDevice = GObject.registerClass({
         this._airpodsSocket?.destroy();
         this._airpodsSocket = null;
         this._bluezDeviceProxy = null;
-        this.dataHandler?.disconnectObject(this);
+        if (this._dataHandlerId)
+            this.dataHandler?.disconnect(this._dataHandlerId);
+        this._dataHandlerId = null;
         this.dataHandler = null;
-        this._settings?.disconnectObject(this);
-        this._mediaController?.disconnectObject(this);
+        if (this._settingsHandlerId)
+            this._settings?.disconnect(this._settingsHandlerId);
+        this._settingsHandlerId = null;
+        if (this._mediaHandlerId)
+            this._mediaController?.disconnect(this._mediaHandlerId);
+        this._mediaHandlerId = null;
         this._mediaController?.destroy();
         this._mediaController = null;
         this._battInfoRecieved = false;

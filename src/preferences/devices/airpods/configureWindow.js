@@ -393,7 +393,7 @@ export const  ConfigureWindow = GObject.registerClass({
             page.add(pressHoldGroup);
         }
 
-        settings.connect('changed::airpods-list', () => {
+        this._settingSignalId = settings.connect('changed::airpods-list', () => {
             const updatedList = settings.get_strv('airpods-list').map(JSON.parse);
             this._settingsItems = updatedList.find(info => info.path === devicePath);
             if (!this._settingsItems)
@@ -430,6 +430,13 @@ export const  ConfigureWindow = GObject.registerClass({
                 this._pressSpeedDropdown.selected_item = this._settingsItems['press-speed'];
                 this._pressDurationDropdown.selected_item = this._settingsItems['press-dur'];
             }
+        });
+
+        this.connect('close-request', () => {
+            this._toneWidget?.destroy();
+            this._toneWidget = null;
+            settings.disconnect(this._settingSignalId);
+            settings = null;
         });
     }
 

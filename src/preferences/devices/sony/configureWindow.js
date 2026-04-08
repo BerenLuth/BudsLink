@@ -498,7 +498,7 @@ export const ConfigureWindow = GObject.registerClass({
             }
         }
 
-        settings.connect('changed::sony-list', () => {
+        this._settingSignalId = settings.connect('changed::sony-list', () => {
             const updatedList = settings.get_strv('sony-list').map(JSON.parse);
             this._settingsItems = updatedList.find(info => info.path === devicePath);
             if (!this._settingsItems)
@@ -549,6 +549,15 @@ export const ConfigureWindow = GObject.registerClass({
 
             if (modelData.automaticPowerOffByTime)
                 this._autoPowerOffDropdown.selected_item = this._settingsItems['auto-power-time'];
+        });
+
+        this.connect('close-request', () => {
+            this._eq?.destroy();
+            this._eq = null;
+            this._voiceNotificationsVolume?.destroy();
+            this._voiceNotificationsVolume = null;
+            settings.disconnect(this._settingSignalId);
+            settings = null;
         });
     }
 

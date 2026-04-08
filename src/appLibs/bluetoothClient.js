@@ -56,7 +56,7 @@ export const BluetoothClient = GObject.registerClass({
                 }
             }
 
-            this._bus.signal_subscribe(
+            this._propsSignalId = this._bus.signal_subscribe(
                 BLUEZ,
                 FD_PROPS_IFACE,
                 'PropertiesChanged',
@@ -66,7 +66,7 @@ export const BluetoothClient = GObject.registerClass({
                 this._onPropertiesChanged.bind(this)
             );
 
-            this._bus.signal_subscribe(
+            this._ifaceRemovedSignalId = this._bus.signal_subscribe(
                 BLUEZ,
                 OBJ_MANAGER_IFACE,
                 'InterfacesRemoved',
@@ -128,6 +128,23 @@ export const BluetoothClient = GObject.registerClass({
             this.devices.set(path, {connected, icon, alias});
             this.emit('devices-update');
         }
+    }
+
+    destroy() {
+        if (this._bus) {
+            if (this._propsSignalId) {
+                this._bus.signal_unsubscribe(this._propsSignalId);
+                this._propsSignalId = null;
+            }
+            if (this._ifaceRemovedSignalId) {
+                this._bus.signal_unsubscribe(this._ifaceRemovedSignalId);
+                this._ifaceRemovedSignalId = null;
+            }
+        }
+
+        this.devices.clear();
+        this._bus = null;
+        this._log = null;
     }
 });
 

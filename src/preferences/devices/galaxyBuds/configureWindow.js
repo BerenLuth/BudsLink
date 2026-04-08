@@ -148,7 +148,7 @@ export const ConfigureWindow = GObject.registerClass({
         this._addNCCycleCheckBox(_);
         this._addTouchAndHoldFnChange(_);
 
-        settings.connect('changed::galaxy-buds-list', () => {
+        this._settingSignalId = settings.connect('changed::galaxy-buds-list', () => {
             const updatedList = settings.get_strv('galaxy-buds-list').map(JSON.parse);
             this._settingsItems = updatedList.find(info => info.path === devicePath);
             if (!this._settingsItems)
@@ -213,7 +213,17 @@ export const ConfigureWindow = GObject.registerClass({
             if (ringState === 'playing')
                 this._updateGsettings('ring-state', 'stopped');
 
-            return false;
+            this._stereoBal?.destroy();
+            this._stereoBal = null;
+            this._ambCustomLeft?.destroy();
+            this._ambCustomLeft = null;
+            this._ambCustomRight?.destroy();
+            this._ambCustomRight = null;
+            this._ambCustomTone?.destroy();
+            this._ambCustomTone = null;
+
+            settings.disconnect(this._settingSignalId);
+            settings = null;
         });
     }
 

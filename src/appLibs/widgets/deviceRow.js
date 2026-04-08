@@ -250,6 +250,7 @@ export const DeviceRowNavPage = GObject.registerClass({
             navView.remove(this._navPage);
         }
 
+        this._circleBattWidget?.destroy();
         this._circleBattWidget = null;
 
         this._battWidget?.destroy();
@@ -285,8 +286,6 @@ export const DeviceRowNavPage = GObject.registerClass({
             this._dataHandler.disconnect(this._dataHandlerId3);
         this._dataHandlerId3 = null;
 
-        if (this._navPage && this._navPage.get_parent())
-            this._navPage.get_parent().remove(this._navPage);
         this._navPage = null;
     }
 });

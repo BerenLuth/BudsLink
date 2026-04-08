@@ -8,7 +8,6 @@ import GObject from 'gi://GObject';
 import GLibUnix from 'gi://GLibUnix';
 import {gettext as _} from 'gettext';
 
-import {registerDestroyableType, destroyAllSignals} from './appLibs/signalTracker.js';
 import {initLogger, createLogger} from './lib/devices/logger.js';
 import {DeviceRowNavPage} from './appLibs/widgets/deviceRow.js';
 import {SettingsButton} from './appLibs/widgets/settingsButton.js';
@@ -31,9 +30,6 @@ const SIGTERM = 15;
 
 const AppId = pkg.name; // eslint-disable-line no-undef
 const dataDir = pkg.datadir; // eslint-disable-line no-undef
-
-
-registerDestroyableType(Gtk.Widget);
 
 export const BudsLinkApplication = GObject.registerClass({
     GTypeName: 'BudsLinkApplication',
@@ -298,8 +294,6 @@ export const BudsLinkApplication = GObject.registerClass({
     }
 
     destroy() {
-        destroyAllSignals();
-
         if (this._sigintId) {
             GLib.Source.remove(this._sigintId);
             this._sigintId = 0;
@@ -309,6 +303,12 @@ export const BudsLinkApplication = GObject.registerClass({
             GLib.Source.remove(this._sigtermId);
             this._sigtermId = 0;
         }
+
+        this._themeManager?.destroy();
+        this._themeManager = null;
+
+        this._client?.destroy();
+        this._client = null;
 
         this._dbusService?.destroy();
         this._dbusService = null;
@@ -320,6 +320,8 @@ export const BudsLinkApplication = GObject.registerClass({
             props.row?.destroy();
 
         this._compDevices.clear();
+
+        this.settings = null;
     }
 });
 

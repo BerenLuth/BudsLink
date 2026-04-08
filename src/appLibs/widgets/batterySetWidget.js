@@ -25,7 +25,6 @@ export const BatterySetWidget = GObject.registerClass({
         if (this._config.battery2Icon)
             this._buildBattery(2, dataDir);
 
-
         if (this._config.battery3Icon)
             this._buildBattery(3, dataDir);
 
@@ -106,17 +105,9 @@ export const BatterySetWidget = GObject.registerClass({
         const icon = this[`_battery${index}BatteryIcon`];
         const label = this[`_battery${index}PercentageLabel`];
 
-        if (
-            showOnDisconnect ||
-            level !== 0 && status !== 'disconnected'
-        ) {
+        if (showOnDisconnect || level !== 0 && status !== 'disconnected') {
             icon.updateValues(level, status);
-
-            label.label =
-                level === 0 && showOnDisconnect
-                    ? ''
-                    : `${level}%`;
-
+            label.label = level === 0 && showOnDisconnect ? '' : `${level}%`;
             box.set_visible(true);
         } else {
             box.set_visible(false);
@@ -132,6 +123,15 @@ export const BatterySetWidget = GObject.registerClass({
         this._dataHandlerId = null;
         this._dataHandlerIdConfig = null;
         this._dataHandler = null;
+
+        for (let i = 1; i <= 3; i++) {
+            const icon = this[`_battery${i}BatteryIcon`];
+            icon?.destroy?.();
+
+            this[`_battery${i}BatteryIcon`] = null;
+            this[`_battery${i}BatteryBox`] = null;
+            this[`_battery${i}PercentageLabel`] = null;
+        }
     }
 });
 

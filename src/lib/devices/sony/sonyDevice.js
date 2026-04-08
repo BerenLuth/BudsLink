@@ -515,12 +515,18 @@ export const SonyDevice = GObject.registerClass({
 
     _monitorSonyListGsettings(monitor) {
         if (monitor) {
-            this._settings?.connectObject('changed::sony-list', () =>
-                this._updateGsettingsProps(), this);
+            if (this._settingsHandlerId)
+                this._settings?.disconnect(this._settingsHandlerId);
+
+            this._settingsHandlerId = this._settings?.connect('changed::sony-list', () =>
+                this._updateGsettingsProps());
         } else {
-            this._settings?.disconnectObject(this);
+            if (this._settingsHandlerId)
+                this._settings?.disconnect(this._settingsHandlerId);
+            this._settingsHandlerId = null;
         }
     }
+
 
     _updateGsettings() {
         this._monitorSonyListGsettings(false);
@@ -554,7 +560,7 @@ export const SonyDevice = GObject.registerClass({
         this._props.toggle1Visible = this._ambientSoundControlSupported;
         this._props.toggle2Visible = this._speakToChatEnabledSupported;
 
-        this.dataHandler.connectObject(
+        this._dataHandlerId = this.dataHandler.connect(
             'ui-action', (o, command, value) => {
                 if (command === 'toggle1State')
                     this._toggle1ButtonClicked(value);
@@ -582,8 +588,7 @@ export const SonyDevice = GObject.registerClass({
 
                 if (command === 'settingsButtonClicked')
                     this._settingsButtonClicked();
-            },
-            this
+            }
         );
     }
 
@@ -1136,13 +1141,17 @@ export const SonyDevice = GObject.registerClass({
     destroy() {
         this._configureWindowLauncherCancellable?.cancel();
         this._configureWindowLauncherCancellable = null;
-
-        this.dataHandler?.disconnectObject(this);
-        this._settings?.disconnectObject(this);
         this._bluezDeviceProxy = null;
         this._sonySocket?.destroy();
         this._sonySocket = null;
+
+        if (this._dataHandlerId)
+            this.dataHandler?.disconnect(this._dataHandlerId);
+        this._dataHandlerId = null;
         this.dataHandler = null;
+        if (this._settingsHandlerId)
+            this._settings?.disconnect(this._settingsHandlerId);
+        this._settingsHandlerId = null;
         this._battInfoRecieved = false;
     }
 });

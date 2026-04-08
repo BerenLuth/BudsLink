@@ -136,7 +136,7 @@ export const ConfigureWindow = GObject.registerClass({
         this._addMiscSetting();
         this._addGestureControls();
 
-        settings.connect('changed::nothing-buds-list', () => {
+        this._settingSignalId = settings.connect('changed::nothing-buds-list', () => {
             const updatedList = settings.get_strv('nothing-buds-list').map(JSON.parse);
             this._settingsItems = updatedList.find(info => info.path === devicePath);
             if (!this._settingsItems)
@@ -169,7 +169,7 @@ export const ConfigureWindow = GObject.registerClass({
 
         this.connect('close-request', () => {
             if (!this._modelData?.ring)
-                return false;
+                return;
 
             const ringState = this._settingsItems?.['ring-state'];
             if (ringState === 'playing')
@@ -181,7 +181,13 @@ export const ConfigureWindow = GObject.registerClass({
                     this._updateGsettings('ring-state-left', 'stopped');
             }
 
-            return false;
+            this._eq?.destroy();
+            this._eq = null;
+            this._baseLevel?.destroy();
+            this._baseLevel = null;
+
+            settings.disconnect(this._settingSignalId);
+            settings = null;
         });
     }
 

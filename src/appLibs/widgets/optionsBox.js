@@ -42,24 +42,28 @@ export const OptionsBox = GObject.registerClass({
                 hexpand: true,
             });
 
+            const widgets = [];
+
             opts.forEach(opt => {
                 let widget = null;
 
                 if (opt === 'slider')
                     widget = new SliderBin(this._dataHandler, boxId);
-
                 else if (opt === 'check-button')
                     widget = new CheckButtonBin(this._dataHandler, boxId);
-
                 else if (opt === 'radio-button')
                     widget = new RadioButtonBin(this._dataHandler, boxId);
 
-
-                if (widget)
+                if (widget) {
                     page.append(widget);
+                    widgets.push(widget);
+                }
             });
 
-            this._pages[boxId] = page;
+            this._pages[boxId] = {
+                container: page,
+                widgets,
+            };
         });
 
         this._updateVisibleBox(this._dataHandler.props.optionsBoxVisible);
@@ -77,12 +81,12 @@ export const OptionsBox = GObject.registerClass({
             this._currentPage = null;
         }
 
-        const page = this._pages[index];
-        if (!page)
+        const pageObj = this._pages[index];
+        if (!pageObj)
             return;
 
-        this.append(page);
-        this._currentPage = page;
+        this.append(pageObj.container);
+        this._currentPage = pageObj.container;
     }
 
     destroy() {
@@ -92,8 +96,12 @@ export const OptionsBox = GObject.registerClass({
         this._dataHandlerId = null;
         this._dataHandler = null;
 
-        for (const page of Object.values(this._pages))
-            page?.get_first_child()?.destroy();
+        for (const page of Object.values(this._pages)) {
+            for (const widget of page.widgets)
+                widget.destroy?.();
+        }
+
+        this._pages = {};
+        this._currentPage = null;
     }
 });
-
