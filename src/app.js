@@ -40,6 +40,8 @@ export const BudsLinkApplication = GObject.registerClass({
             flags: Gio.ApplicationFlags.FLAGS_NONE,
         });
 
+        this._isServiceHeld = false;
+
         this._log = createLogger('Main');
 
         this.connect('startup', () => {
@@ -103,7 +105,10 @@ export const BudsLinkApplication = GObject.registerClass({
             this._releaseTimer = 0;
         }
 
-        this.hold();
+        if (!this._isServiceHeld) {
+            this._isServiceHeld = true;
+            this.hold();
+        }
     }
 
     _releaseService() {
@@ -113,6 +118,7 @@ export const BudsLinkApplication = GObject.registerClass({
         this._releaseTimer = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
             this._releaseTimer = 0;
             this.release();
+            this._isServiceHeld = false;
             return GLib.SOURCE_REMOVE;
         });
     }

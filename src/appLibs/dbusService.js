@@ -118,7 +118,7 @@ class Device extends GObject.Object {
     _onPropsChanged() {
         this._state = this._dataHandler.getProps();
 
-        if (this._stateDebounceId !== 0)
+        if (this._stateDebounceId)
             return;
 
         this._stateDebounceId = GLib.timeout_add(
@@ -163,9 +163,9 @@ class Device extends GObject.Object {
             this._dataHandler.disconnect(this._propsChangedId);
         this._propsChangedId = null;
 
-        if (this._stateDebounceId !== 0) {
+        if (this._stateDebounceId) {
             GLib.source_remove(this._stateDebounceId);
-            this._stateDebounceId = 0;
+            this._stateDebounceId = null;
         }
 
         if (this._registrationId && this._connection) {
@@ -213,10 +213,13 @@ class DbusService extends GObject.Object {
                 return;
             }
 
-            if (this._holders.has(clientId))
-                GLib.source_remove(this._holders.get(clientId));
-            else if (this._holders.size === 0)
+            if (this._holders.has(clientId)) {
+                const id = this._holders.get(clientId);
+                this._holders.delete(clientId);
+                GLib.source_remove(id);
+            } else if (this._holders.size === 0) {
                 this._holdServiceCb();
+            }
 
             const timerId = GLib.timeout_add_seconds(
                 GLib.PRIORITY_DEFAULT,
@@ -240,8 +243,9 @@ class DbusService extends GObject.Object {
                 return;
             }
 
-            GLib.source_remove(this._holders.get(clientId));
+            const id = this._holders.get(clientId);
             this._holders.delete(clientId);
+            GLib.source_remove(id);
 
             this._log.info(`ReleaseService: client ${clientId}, holders=${this._holders.size}`);
 
