@@ -64,10 +64,7 @@ export const ConfigureWindow = GObject.registerClass({
         const modelData = SonyConfiguration.find(cfg => cfg.pattern.test(this._settingsItems.name));
 
         const toolViewBar = new Adw.ToolbarView();
-        const headerBar = new Adw.HeaderBar({
-            decoration_layout: ':minimize,close',
-            show_end_title_buttons: true,
-        });
+        const headerBar = new Adw.HeaderBar();
         const page = new Adw.PreferencesPage();
 
         toolViewBar.add_top_bar(headerBar);

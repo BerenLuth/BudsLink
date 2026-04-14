@@ -170,10 +170,7 @@ export const BudsLinkApplication = GObject.registerClass({
         });
 
         const toolbarView = new Adw.ToolbarView();
-        const headerBar = new Adw.HeaderBar({
-            decoration_layout: ':minimize,close',
-            show_end_title_buttons: true,
-        });
+        const headerBar = new Adw.HeaderBar();
         toolbarView.add_top_bar(headerBar);
 
         const navPage = new Adw.NavigationPage({
