@@ -49,19 +49,19 @@
   <translation type="gettext">@APP_ID@</translation>
   <screenshots>
     <screenshot type="default">
-      <image>https://raw.githubusercontent.com/maniacx/BudsLink/2efd5009c8880fba02e032832be3d6f18e815aab/resources/light-airpods.png</image>
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/2efd5009c8880fba02e032832be3d6f18e815aab/data/screenshots/light-airpods.png</image>
       <caption>AirPods interface</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/maniacx/BudsLink/2efd5009c8880fba02e032832be3d6f18e815aab/resources/light-sony.png</image>
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/2efd5009c8880fba02e032832be3d6f18e815aab/data/screenshots/light-sony.png</image>
       <caption>Sony</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/maniacx/BudsLink/2efd5009c8880fba02e032832be3d6f18e815aab/resources/main.png</image>
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/2efd5009c8880fba02e032832be3d6f18e815aab/data/screenshots/main.png</image>
       <caption>Device list overview</caption>
     </screenshot>
     <screenshot>
-      <image>https://raw.githubusercontent.com/maniacx/BudsLink/2efd5009c8880fba02e032832be3d6f18e815aab/resources/companion.png</image>
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/2efd5009c8880fba02e032832be3d6f18e815aab/data/screenshots/companion.png</image>
       <caption>Extension and widget integrations, installed separately</caption>
     </screenshot>
   </screenshots>
