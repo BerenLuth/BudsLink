@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
   <id>@APP_ID@</id>
-
   <name>BudsLink</name>
   <summary>Monitor and control Bluetooth earbuds</summary>
-
   <description>
     <p>
       BudsLink provides comprehensive battery monitoring and feature control for supported Bluetooth wearable audio devices, including popular models from Apple, Beats, and Sony. The application communicates directly with supported devices to expose battery levels, noise control modes, and advanced interaction features when available, offering a consistent and configurable interface across different vendors.
@@ -20,36 +18,7 @@
       <li>Optional overrides for system dark mode and accent colors</li>
     </ul>
   </description>
-
-  <metadata_license>CC-BY-SA-4.0</metadata_license>
-  <project_license>GPL-3.0-or-later</project_license>
-
-  <developer id="com.github.maniacx">
-    <name>maniacx</name>
-    <email>maniacx@github.com</email>
-  </developer>
-
-  <url type="homepage">https://github.com/maniacx/BudsLink/</url>
-  <url type="bugtracker">https://github.com/maniacx/BudsLink/issues</url>
-  <url type="help">https://maniacx.github.io/BudsLink/</url>
-  <url type="translate">https://maniacx.github.io/BudsLink/translation</url>
-
-  <content_rating type="oars-1.1" />
-
-  <launchable type="desktop-id">@APP_ID@.desktop</launchable>
-
-  <translation type="gettext">@APP_ID@</translation>
-
-  <custom>
-    <value key="Purism::form_factor">mobile</value>
-  </custom>
-
-  <branding>
-    <color type="primary" scheme_preference="light">#aaffcc</color>
-    <color type="primary" scheme_preference="dark">#165016</color>
-  </branding>
-
-  <keywords>
+ <keywords>
     <keyword>Bluetooth</keyword>
     <keyword>Earbuds</keyword>
     <keyword>Headphones</keyword>
@@ -65,28 +34,49 @@
     <keyword>Nothing</keyword>
     <keyword>CMF</keyword>
   </keywords>
-
+  <metadata_license>CC-BY-SA-4.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <developer id="com.github.maniacx">
+    <name>maniacx</name>
+  </developer>
+  <url type="homepage">https://maniacx.github.io/BudsLink/</url>
+  <url type="bugtracker">https://github.com/maniacx/BudsLink/issues</url>
+  <url type="help">https://maniacx.github.io/BudsLink/</url>
+  <url type="translate">https://maniacx.github.io/BudsLink/translation</url>
+  <url type="vcs-browser">https://github.com/maniacx/BudsLink/</url>
+  <content_rating type="oars-1.1" />
+  <launchable type="desktop-id">@APP_ID@.desktop</launchable>
+  <translation type="gettext">@APP_ID@</translation>
   <screenshots>
-    <screenshot type="default" environment="gnome" xml:lang="en">
-      <image>https://raw.githubusercontent.com/maniacx/BudsLink/ac78f8161145b1258e42eb47a2b7aef820ee78df/resources/budlink-light-airpod.png</image>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/2efd5009c8880fba02e032832be3d6f18e815aab/resources/light-airpods.png</image>
+      <caption>AirPods interface</caption>
     </screenshot>
-    <screenshot environment="gnome" xml:lang="en">
-      <image>https://raw.githubusercontent.com/maniacx/BudsLink/ac78f8161145b1258e42eb47a2b7aef820ee78df/resources/budlink-light-sony.png</image>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/2efd5009c8880fba02e032832be3d6f18e815aab/resources/light-sony.png</image>
+      <caption>Sony</caption>
     </screenshot>
-    <screenshot environment="gnome" xml:lang="en">
-      <image>https://raw.githubusercontent.com/maniacx/BudsLink/ac78f8161145b1258e42eb47a2b7aef820ee78df/resources/budlink-light-main.png</image>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/2efd5009c8880fba02e032832be3d6f18e815aab/resources/main.png</image>
+      <caption>Device list overview</caption>
     </screenshot>
-    <screenshot environment="gnome:dark" xml:lang="en">
-      <image>https://raw.githubusercontent.com/maniacx/BudsLink/ac78f8161145b1258e42eb47a2b7aef820ee78df/resources/budlink-dark-airpod.png</image>
-    </screenshot>
-    <screenshot environment="gnome:dark" xml:lang="en">
-      <image>https://raw.githubusercontent.com/maniacx/BudsLink/ac78f8161145b1258e42eb47a2b7aef820ee78df/resources/budlink-dark-sony.png</image>
-    </screenshot>
-    <screenshot environment="gnome:dark" xml:lang="en">
-      <image>https://raw.githubusercontent.com/maniacx/BudsLink/ac78f8161145b1258e42eb47a2b7aef820ee78df/resources/budlink-dark-main.png</image>
+    <screenshot>
+      <image>https://raw.githubusercontent.com/maniacx/BudsLink/2efd5009c8880fba02e032832be3d6f18e815aab/resources/companion.png</image>
+      <caption>Extension and widget integrations, installed separately</caption>
     </screenshot>
   </screenshots>
-
+  <branding>
+    <color type="primary" scheme_preference="light">#aaffcc</color>
+    <color type="primary" scheme_preference="dark">#165016</color>
+  </branding>
+  <supports>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <control>touch</control>
+  </supports>
+  <custom>
+    <value key="Purism::form_factor">mobile</value>
+  </custom>
   <releases>
     <release version="0.1.1" date="2026-02-12">
       <description>
@@ -104,6 +94,5 @@
       </description>
     </release>
   </releases>
-
 </component>
 

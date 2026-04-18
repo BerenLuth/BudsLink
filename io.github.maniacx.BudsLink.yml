@@ -16,7 +16,6 @@ finish-args:
 
 cleanup:
   - /share/io.github.maniacx.BudsLink/Gvc-1.0.gir
-  - /lib/debug
 
 modules:
   - name: BudsLink
