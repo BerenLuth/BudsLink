@@ -1,0 +1,71 @@
+# MPRIS access is required for volume control in conversation mode, but current confinement prevents reliable interaction with all desktop media players.
+# The snap mpris interface is intended for snaps that expose a media player, not for discovering or controlling arbitrary desktop players or their state.
+# It does not provide a global mechanism to detect active media sessions across the desktop.
+# As a result, volume control during conversation mode is currently non-functional, while all other features continue to work as expected.
+
+name: budslink
+grade: devel
+adopt-info: budslink
+icon: src/icons/hicolor/scalable/apps/io.github.maniacx.BudsLink.svg
+base: core24
+confinement: strict
+
+layout:
+  /usr/bin/gjs:
+    symlink: $SNAP/gnome-platform/usr/bin/gjs
+
+slots:
+  budslink:
+    interface: dbus
+    bus: session
+    name: io.github.maniacx.BudsLink
+
+apps:
+  budslink:
+    command: /usr/bin/budslink
+    desktop: usr/share/applications/io.github.maniacx.BudsLink.desktop
+    extensions: [gnome]
+    common-id: io.github.maniacx.BudsLink
+    plugs:
+      - desktop
+      - bluez
+      - audio-playback
+      - system-observe
+      - mpris
+      - dbus-client
+    environment:
+      GI_TYPELIB_PATH: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/io.github.maniacx.BudsLink/girepository-1.0:$SNAP/gnome-platform/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/gjs/girepository-1.0:$SNAP/gnome-platform/usr/lib/girepository-1.0:$SNAP/gnome-platform/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR/girepository-1.0
+      LD_LIBRARY_PATH: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR:$SNAP/usr/lib:$SNAP/gnome-platform/usr/lib:$SNAP/gnome-platform/usr/lib/$CRAFT_ARCH_TRIPLET_BUILD_FOR
+
+parts:
+  budslink:
+    source: .
+    plugin: meson
+    meson-parameters:
+      - --buildtype=release
+      - --prefix=/usr
+    parse-info: [usr/share/metainfo/io.github.maniacx.BudsLink.appdata.xml]
+    override-pull: |
+      craftctl default
+      sed -i -E 's|@GJS@|/usr/bin/gjs|g' src/io.github.maniacx.BudsLink.js
+      sed -i -E "s|prefix: '@PREFIX@'|prefix: GLib.build_filenamev([GLib.getenv(\"SNAP\"), '@PREFIX@'])|g" src/io.github.maniacx.BudsLink.js
+      sed -i -E "s|libdir: '@LIBDIR@'|libdir: GLib.build_filenamev([GLib.getenv(\"SNAP\"), '@LIBDIR@'])|g" src/io.github.maniacx.BudsLink.js
+      sed -i -E "s|const AppId = pkg\.name;|const AppId = 'io.github.maniacx.BudsLink';|g" src/app.js
+      sed -i -E "s|APP_ID \+ '\.src'|'budslink.src'|g" src/meson.build
+      sed -i -E "s|APP_ID \+ '\.data'|'budslink.data'|g" data/meson.build
+    override-build: |
+      craftctl default
+      mkdir -p $CRAFT_PART_INSTALL/usr/share/metainfo
+      cp $CRAFT_PART_INSTALL/usr/share/metainfo/io.github.maniacx.BudsLink.metainfo.xml $CRAFT_PART_INSTALL/usr/share/metainfo/io.github.maniacx.BudsLink.appdata.xml
+      mkdir -p $CRAFT_PART_INSTALL/meta/gui
+      cp $CRAFT_PART_SRC/src/icons/hicolor/scalable/apps/io.github.maniacx.BudsLink.svg $CRAFT_PART_INSTALL/meta/gui/
+      sed -i -E 's|=@BINDIR@/@APP_COMMAND@$|=${SNAP}/usr/share/io.github.maniacx.BudsLink/io.github.maniacx.BudsLink|g' data/io.github.maniacx.BudsLink.desktop
+
+plugs:
+  dbus-client:
+    interface: dbus
+    bus: session
+    name: org.mpris.MediaPlayer2.chromium
+
+
+
