@@ -81,6 +81,20 @@
     <value key="Purism::form_factor">mobile</value>
   </custom>
   <releases>
+  <release version="0.1.2" date="2026-04-21">
+    <description>
+      <ul>
+        <li>Add D-Bus service API for external device control and monitoring</li>
+        <li>Introduce GVC-based audio controller, replacing pactl subprocess usage</li>
+        <li>Add support for Nothing earbuds</li>
+        <li>Add support for Samsung Galaxy Buds devices</li>
+        <li>Enable packet logging toggle for debugging and diagnostics</li>
+        <li>Add integration links for GNOME Extension, Plasma Widget, and Cinnamon Spices with D-Bus based control and monitoring in service mode</li>
+        <li>UI improvements and bug fixes across device control and settings panels</li>
+        <li>Improved UI on mobile and small-screen devices</li>
+      </ul>
+    </description>
+  </release>
     <release version="0.1.1" date="2026-02-12">
       <description>
         <ul>
