@@ -1,8 +1,10 @@
 'use strict';
 
 import Gtk from 'gi://Gtk';
+import Gio from 'gi://Gio';
 import GObject from 'gi://GObject';
 import Adw from 'gi://Adw';
+import Pango from 'gi://Pango';
 import {gettext as _} from 'gettext';
 
 const MODE_KEY = 'dark-mode';
@@ -71,6 +73,20 @@ class SettingsButton extends Gtk.MenuButton {
         ));
 
         box.append(this._createRow(
+            'bbm-logs-symbolic',
+            _('Packet Logging'),
+            true,
+            btn => this._openSubPopover(() => this._createLoggingPopover(), btn)
+        ));
+
+        box.append(this._createRow(
+            'bbm-extension-symbolic',
+            _('BudsLink Companion'),
+            true,
+            btn => this._openSubPopover(() => this._createCompanionLinksPopover(), btn)
+        ));
+
+        box.append(this._createRow(
             'bbm-help-about-symbolic',
             _('About BudsLink'),
             false,
@@ -82,10 +98,6 @@ class SettingsButton extends Gtk.MenuButton {
                     pkg.version    // eslint-disable-line no-undef
                 );
                 aboutDialog.set_application_icon('io.github.maniacx.BudsLink');
-                aboutDialog.developers = ['maniacx@github.com'];
-                aboutDialog.copyright = _('Copyright © 2026 maniacx@github.com');
-                aboutDialog.website = 'https://github.com/maniacx/BudsLink/';
-                aboutDialog.issue_url = 'https://github.com/maniacx/BudsLink/issues';
                 aboutDialog.add_link(
                     _('Translation'),
                     'https://maniacx.github.io/BudsLink/translation'
@@ -94,13 +106,6 @@ class SettingsButton extends Gtk.MenuButton {
                 aboutDialog.present(parent);
                 this._mainPopover.popdown();
             }
-        ));
-
-        box.append(this._createRow(
-            'bbm-logs-symbolic',
-            _('Packet Logging'),
-            true,
-            btn => this._openSubPopover(() => this._createLoggingPopover(), btn)
         ));
 
         this._mainPopover.set_child(box);
@@ -295,6 +300,83 @@ class SettingsButton extends Gtk.MenuButton {
 
         add(_('On'), true);
         add(_('Off'), false);
+
+        popover.set_child(box);
+        return popover;
+    }
+
+    _createCompanionLinksPopover() {
+        const popover = new Gtk.Popover({
+            has_arrow: true,
+            position: this._popPosition,
+            cascade_popdown: true,
+        });
+
+        const box = new Gtk.Box({
+            orientation: Gtk.Orientation.VERTICAL,
+            spacing: 4,
+            margin_top: 6,
+            margin_bottom: 6,
+            margin_start: 6,
+            margin_end: 6,
+        });
+
+        box.set_size_request(280, -1);
+
+        const addLink = (label, url, iconName) => {
+            const button = new Gtk.Button({
+                css_classes: ['flat'],
+            });
+
+            const row = new Gtk.Box({
+                orientation: Gtk.Orientation.HORIZONTAL,
+                spacing: 10,
+            });
+
+            row.append(new Gtk.Image({
+                icon_name: iconName,
+            }));
+
+            row.append(new Gtk.Label({
+                label,
+                xalign: 0,
+                hexpand: true,
+                ellipsize: Pango.EllipsizeMode.END,
+                max_width_chars: 28,
+            }));
+
+            row.append(new Gtk.Image({
+                icon_name: 'adw-external-link-symbolic',
+            }));
+
+            button.set_child(row);
+
+            button.connect('clicked', () => {
+                Gio.AppInfo.launch_default_for_uri(url, null);
+                popover.popdown();
+                this._mainPopover.popdown();
+            });
+
+            box.append(button);
+        };
+
+        addLink(
+            _('GNOME Extension'),
+            'https://github.com/maniacx/BudsLink-Companion/tree/Gnome-Extension',
+            'bbm-gnome-extension-symbolic'
+        );
+
+        addLink(
+            _('Plasma Widget'),
+            'https://github.com/maniacx/BudsLink-Companion/tree/Plasma-Widget',
+            'bbm-plasma-widget-symbolic'
+        );
+
+        addLink(
+            _('Cinnamon Spice'),
+            'https://github.com/maniacx/BudsLink-Companion/tree/Cinnamon-Applet',
+            'bbm-cinnamon-spices-symbolic'
+        );
 
         popover.set_child(box);
         return popover;
