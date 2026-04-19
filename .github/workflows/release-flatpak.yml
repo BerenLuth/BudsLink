@@ -10,32 +10,31 @@ on:
 
 jobs:
   build:
-    name: Build Flatpak (${{ matrix.arch }})
-    runs-on: ${{ matrix.runner }}
+    name: Build Flatpak (${{ matrix.variant.arch }})
+    runs-on: ${{ matrix.variant.runner }}
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-49
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
       options: --privileged
 
     strategy:
       fail-fast: false
       matrix:
-        include:
+        variant:
           - arch: x86_64
             runner: ubuntu-24.04
           - arch: aarch64
             runner: ubuntu-24.04-arm
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Build Flatpak
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           manifest-path: io.github.maniacx.BudsLink.yml
-          bundle: BudsLink-${{ github.ref_name }}-${{ matrix.arch }}.flatpak
-          arch: ${{ matrix.arch }}
-          cache-key: flatpak-builder-${{ matrix.arch }}-${{ github.sha }}
+          bundle: BudsLink-${{ github.ref_name }}-${{ matrix.variant.arch }}.flatpak
+          arch: ${{ matrix.variant.arch }}
+          cache-key: flatpak-builder-${{ matrix.variant.arch }}-${{ github.sha }}
           upload-artifact: true
 
   release:
@@ -44,15 +43,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+      - name: Create source archive
+        run: |
+          set -e
+
+          TAG="${GITHUB_REF_NAME}"
+          NAME="BudsLink-${TAG}"
+          OUTDIR="release-source"
+
+          mkdir -p "$OUTDIR"
+
+          git archive --format=tar.gz --prefix="$NAME/" -o "$OUTDIR/$NAME.tar.gz" HEAD
+
+          mv "$OUTDIR/$NAME.tar.gz" artifacts/
+
+      - name: Generate Flathub manifest
+        run: |
+          set -e
+
+          TAG="${GITHUB_REF_NAME}"
+          NAME="BudsLink-${TAG}.tar.gz"
+
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${NAME}"
+
+          SHA=$(sha256sum "artifacts/$NAME" | cut -d ' ' -f1)
+
+          sed \
+            -e "s|@URL@|$URL|g" \
+            -e "s|@SHA@|$SHA|g" \
+            build-aux/flathub-manifest.yml \
+            > artifacts/flathub-manifest.yml
+
+      - uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*.flatpak
+          files: |
+            artifacts/**/*.flatpak
+            artifacts/*.tar.gz
+            artifacts/flathub-manifest.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

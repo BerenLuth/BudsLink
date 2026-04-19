@@ -1,0 +1,26 @@
+app-id: io.github.maniacx.BudsLink
+runtime: org.gnome.Platform
+runtime-version: "50"
+sdk: org.gnome.Sdk
+command: budslink
+
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --env=PULSE_PROP_media.category=Manager
+  - --system-talk-name=org.bluez
+  - --talk-name=org.mpris.MediaPlayer2.*
+  - --socket=pulseaudio
+  - --device=dri
+
+cleanup:
+  - /share/io.github.maniacx.BudsLink/Gvc-1.0.gir
+
+modules:
+  - name: BudsLink
+    buildsystem: meson
+    sources:
+      - type: archive
+        url: @URL@
+        sha256: @SHA@
