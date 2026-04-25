@@ -59,7 +59,18 @@ jobs:
 
           mkdir -p "$OUTDIR"
 
-          git archive --format=tar.gz --prefix="$NAME/" -o "$OUTDIR/$NAME.tar.gz" HEAD
+          git archive \
+            --format=tar.gz \
+            --prefix="$NAME/" \
+            -o "$OUTDIR/$NAME.tar.gz" \
+            HEAD \
+            -- \
+            . \
+            ':(exclude).github' \
+            ':(exclude).gitignore' \
+            ':(exclude)build-aux' \
+            ':(exclude)io.github.maniacx.BudsLink.yml' \
+            ':(exclude)update-translation.sh'
 
           mv "$OUTDIR/$NAME.tar.gz" artifacts/
 
