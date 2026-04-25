@@ -12,6 +12,9 @@
 [<img src="https://github.com/maniacx/Bluetooth-Battery-Meter/blob/Documentation/assets/images/home/readme.png" width="35%">](https://maniacx.github.io/BudsLink/)
 
 
+### Disclaimer
+**This project is an independent effort and is not affiliated with, endorsed by, or sponsored by Apple, Sony, Samsung, or Nothing. All product and company names are trademarks™ or registered® trademarks of their respective holders and are used for identification purposes only.**
+
 
 
 
