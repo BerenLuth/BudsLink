@@ -291,25 +291,15 @@ export const SonySocketV1 = GObject.registerClass({
 
         const modeIsOff = mode === AmbientSoundMode.ANC_OFF;
         const modeIsNC = mode === AmbientSoundMode.ANC_ON;
-        const modeIsWNR = mode === AmbientSoundMode.WIND;
         const modeIsAmbient = mode === AmbientSoundMode.AMBIENT;
 
-        payload.push(0x02);
-        payload.push(modeIsOff ? 0x00 : 0x11);
-        payload.push(this._windNoiseReductionSupported ? 0x01 : 0x02);
+        payload.push(this._asmType);
+        payload.push(modeIsOff ? 0x00 : 0x01); // m0
+        payload.push(0x00); // m1: 0x00 as seen in manual logs
 
-        let modeCode = 0x00;
-        if (this._windNoiseReductionSupported) {
-            if (modeIsNC)
-                modeCode = 0x02;
-            else if (modeIsWNR)
-                modeCode = 0x01;
-        } else {
-            modeCode = modeIsNC ? 0x01 : 0x00;
-        }
-
-        payload.push(modeCode);
-        payload.push(0x01);
+        // m2: 0x01 for NC, 0x00 for Ambient
+        payload.push(modeIsNC ? 0x01 : 0x00);
+        payload.push(0x01); // m3
         payload.push(focusOnVoice ? 0x01 : 0x00);
 
         const attlevel = modeIsOff || modeIsAmbient ? level : 0x00;
