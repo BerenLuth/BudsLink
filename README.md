@@ -9,7 +9,11 @@
 <br>
 <br>
 
-[<img src="https://github.com/maniacx/Bluetooth-Battery-Meter/blob/Documentation/assets/images/home/readme.png" width="35%">](https://maniacx.github.io/BudsLink/)
+[<img src="https://github.com/maniacx/BudsLink/blob/Documentation/assets/images/home/readme.png" width="35%">](https://maniacx.github.io/BudsLink)
+
+<br>
+
+[<img src="https://github.com/maniacx/BudsLink/blob/Documentation/assets/images/home/get-it-on-flathub.png" width="35%">](https://flathub.org/apps/io.github.maniacx.BudsLink)
 
 
 ### Disclaimer
