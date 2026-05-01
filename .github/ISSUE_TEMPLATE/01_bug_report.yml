@@ -1,0 +1,110 @@
+name: "Bug Report (Supported Earbuds / Headset)"
+description: "Report a problem with BudsLink"
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees:
+  - "maniacx"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Before submitting
+
+        - Make sure you are using the latest version of BudsLink.
+        - Check if the issue already exists.
+        - Provide as much detail as possible.
+        - Report BudsLink Companion bugs on its repository https://github.com/maniacx/BudsLink-Companion/issues.
+
+  - type: input
+    id: os
+    attributes:
+      label: "Operating System"
+      description: "Example: Fedora Workstation 44, Ubuntu 26.04"
+      placeholder: "Fedora Workstation 44"
+    validations:
+      required: true
+
+  - type: input
+    id: kernel
+    attributes:
+      label: "Kernel Version"
+      description: "Output of `uname -r`"
+      placeholder: "6.8.9-300.fc41.x86_64"
+    validations:
+      required: true
+
+  - type: input
+    id: earbuds
+    attributes:
+      label: "Bluetooth Earbuds (Make & Model)"
+      description: "Example: Sony WF-1000XM5, AirPods Pro 2"
+      placeholder: "Sony WF-1000XM5"
+    validations:
+      required: true
+
+  - type: input
+    id: bluez_version
+    attributes:
+      label: "BlueZ Version"
+      description: "Output of `bluetoothctl --version`"
+      placeholder: "bluetoothctl: 5.76"
+    validations:
+      required: true
+
+  - type: textarea
+    id: bluez_info
+    attributes:
+      label: "Bluetooth (BlueZ) Device Info"
+      description: |
+        Run:
+        ```
+        bluetoothctl info <BUDS_MAC_ADDRESS>
+        ```
+
+        **Privacy Suggestions:**
+        - Remove/Replace MAC → `XX:XX:XX:XX:XX:XX`
+        - Remove personal names
+        - Remove `/org/bluez/...` paths
+
+        Keep:
+        - UUIDs
+        - Modalias
+        - Capabilities
+      placeholder: |
+        Name: AirPods Pro
+        Alias: AirPods Pro
+        Class: 0x00240418 (2360344)
+        Icon: audio-headphones
+        Paired: yes
+        Bonded: yes
+        Trusted: yes
+        Blocked: no
+        Connected: no
+        LegacyPairing: no
+        CablePairing: no
+        UUID: Service Discovery Server (00001000-0000-1000-8000-00805f9b34fb)
+        UUID: Audio Sink (0000110b-0000-1000-8000-00805f9b34fb)
+        UUID: A/V Remote Control Target (0000110c-0000-1000-8000-00805f9b34fb)
+        UUID: Advanced Audio Distribution (0000110d-0000-1000-8000-00805f9b34fb)
+        UUID: A/V Remote Control (0000110e-0000-1000-8000-00805f9b34fb)
+        UUID: Handsfree (0000111e-0000-1000-8000-00805f9b34fb)
+        UUID: PnP Information (00001200-0000-1000-8000-00805f9b34fb)
+        UUID: Generic Attribute Profile (00001801-0000-1000-8000-00805f9b34fb)
+        UUID: Vendor specific (4715650b-5e9d-4ac2-b898-a4fc0aa5df78)
+        UUID: Vendor specific (74ec2172-0bad-4d01-8f77-997b2be0722a)
+        Modalias: bluetooth:v004Cp2024d0415
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug_description
+    attributes:
+      label: "Actual Bug Description"
+      description: "Clearly describe the issue you are facing"
+      placeholder: |
+        Example:
+        - Battery not updating
+        - ANC state not syncing
+    validations:
+      required: true
