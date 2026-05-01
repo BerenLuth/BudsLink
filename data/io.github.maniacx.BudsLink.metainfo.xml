@@ -16,6 +16,13 @@
       <li>Customizable device icons and appearance settings</li>
       <li>Optional overrides for system dark mode and accent colors</li>
     </ul>
+    <p>Supported Bluetooth audio wearables</p>
+    <ul>
+      <li>Airpods / Beats</li>
+      <li>Sony</li>
+      <li>Samsung Galaxy Buds</li>
+      <li>Nothing / CMF</li>
+    </ul>
   </description>
   <keywords>
     <keyword>Bluetooth</keyword>
