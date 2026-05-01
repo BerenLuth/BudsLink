@@ -14,7 +14,7 @@ body:
         - Make sure you are using the latest version of BudsLink.
         - Check if the issue already exists.
         - Provide as much detail as possible.
-        - Report BudsLink Companion bugs on its repository https://github.com/maniacx/BudsLink-Companion/issues.
+        - Report BudsLink Companion bugs on its repository https://github.com/maniacx/BudsLink-Companion/issues
 
   - type: input
     id: os
