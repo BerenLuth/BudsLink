@@ -124,8 +124,8 @@ export const SonySocketBase = GObject.registerClass({
 
         if (this._messageQueue.length === 0)
             this._processingQueue = false;
-            else
-                this._processNextQueuedMessage();
+        else
+            this._processNextQueuedMessage();
     }
 
     _encodeSonyMessage(messageType, payloadArr, seq) {
