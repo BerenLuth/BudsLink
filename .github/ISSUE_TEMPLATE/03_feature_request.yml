@@ -1,0 +1,25 @@
+name: "Feature Request"
+description: "Suggest a new feature or improvement"
+title: "[Feature]: "
+labels: ["feature request", "triage"]
+assignees:
+  - "maniacx"
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        - Make sure this feature hasn't already been requested.
+        - Clearly explain the use-case.
+        - Submit BudsLink Companion feature requests here: https://github.com/maniacx/BudsLink-Companion/issues
+
+  - type: textarea
+    id: request
+    attributes:
+      label: "Feature Request"
+      description: "What do you want and why?"
+      placeholder: |
+        Example:
+        Add a quick toggle for ANC in the tray so I don't need to open the app.
+    validations:
+      required: true
