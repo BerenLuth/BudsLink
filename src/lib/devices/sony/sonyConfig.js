@@ -187,7 +187,6 @@ export const AutoPowerOffTime = {
     AFTER_30_MIN: 0x01,
     AFTER_1_HOUR: 0x02,
     AFTER_3_HOUR: 0x03,
-    AFTER_15_MIN: 0x04,
 };
 
 export const AudioCodec = {

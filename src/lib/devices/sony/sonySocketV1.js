@@ -584,35 +584,57 @@ export const SonySocketV1 = GObject.registerClass({
         const state = payload[3];
         const time = payload[4];
 
-        if (!isValidByte(state, AutoPowerOffState)) {
-            this._log.info(`Invalid Value for byte1 _parseAutomaticPowerOff: id=${state}`);
-            return;
+        if (this._automaticPowerOffByTime) {
+            if (state !== AutoPowerOffState.DISABLE && !isValidByte(state, AutoPowerOffTime)) {
+                this._log.info(`Invalid Value for byte1 _parseAutomaticPowerOff: id=${state}`);
+                return;
+            }
+
+            if (!isValidByte(time, AutoPowerOffTime)) {
+                this._log.info(`Invalid Value for byte2 _parseAutomaticPowerOff: id=${time}`);
+                return;
+            }
+        } else {
+            if (!isValidByte(state, AutoPowerOffState)) {
+                this._log.info(`Invalid Value for byte1 _parseAutomaticPowerOff: id=${state}`);
+                return;
+            }
+            if (time !== 0x00) {
+                this._log.info(`Invalid Value for byte2 _parseAutomaticPowerOff: id=${time}`);
+                return;
+            }
         }
 
-        if (!isValidByte(time, AutoPowerOffTime)) {
-            this._log.info(`Invalid Value for byte1 _parseAutomaticPowerOff: id=${time}`);
-            return;
-        }
-
-        const enabled = state === AutoPowerOffState.ENABLE;
+        const disabled = state === AutoPowerOffState.DISABLE;
         this._currentAutoPowerTime = time;
-        this._callbacks?.updateAutomaticPowerOff?.(enabled, time);
+        this._callbacks?.updateAutomaticPowerOff?.(!disabled, time);
     }
 
     setAutomaticPowerOff(enabled, time) {
         this._log.info(`SET AutomaticPowerOff: enabled=${enabled} time: ${time}`);
 
-        const state = enabled ? AutoPowerOffState.ENABLE : AutoPowerOffState.DISABLE;
-        if (this._automaticPowerOffByTime && !isValidByte(time, AutoPowerOffTime)) {
-            this._log.info(`Invalid Value for setAutomaticPowerOff: time: ${time}`);
-            return;
+        let state = AutoPowerOffState.DISABLED;
+
+        if (this._automaticPowerOffByTime) {
+            if (!isValidByte(time, AutoPowerOffTime)) {
+                this._log.info(`Invalid Value for setAutomaticPowerOff: time: ${time}`);
+                return;
+            }
+
+            if (enabled)
+                state = time;
+            else
+                time = 0x00;
+        } else if (enabled) {
+            state = AutoPowerOffState.ENABLE;
+            time = 0x00;
         }
 
         const payload = [PTV1T1.SYSTEM_SET_PARAM];
         payload.push(0x04);
         payload.push(0x01);
         payload.push(state);
-        payload.push(this._automaticPowerOffByTime ? time : 0x00);
+        payload.push(time);
         this.addMessageQueue(MessageType.COMMAND_1, payload, 'SetAutomaticPowerOff');
     }
 
