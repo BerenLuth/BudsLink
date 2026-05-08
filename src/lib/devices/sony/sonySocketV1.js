@@ -296,7 +296,7 @@ export const SonySocketV1 = GObject.registerClass({
 
         payload.push(0x02);
         payload.push(modeIsOff ? 0x00 : 0x11);
-        payload.push(this._windNoiseReductionSupported ? 0x01 : 0x02);
+        payload.push(this._windNoiseReductionSupported ? 0x02 : 0x00);
 
         let modeCode = 0x00;
         if (this._windNoiseReductionSupported) {
