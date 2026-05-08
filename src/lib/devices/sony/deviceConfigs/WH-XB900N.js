@@ -3,10 +3,10 @@
 export default {
     name: 'WH-XB900N',
     pattern: /.*WH-XB900N.*/,
-    modaliasPrefix: 'v054Cp0D0F',
+    modaliasPrefix: 'v054Cp0CDC',
     batterySingle: true,
     ambientSoundControl: true,
-    ambientSoundControlNA: true,
+    ambientSoundControlNA: false,
     windNoiseReduction: false,
     audioSettingsOnlyOnSbcCodec: true,
     equalizerSixBands: true,
