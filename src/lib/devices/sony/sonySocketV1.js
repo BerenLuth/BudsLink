@@ -270,17 +270,14 @@ export const SonySocketV1 = GObject.registerClass({
         if (!isValidByte(mode, AmbientSoundMode))
             return;
 
-        this._ancmode = mode;
-        this._focusOnVoiceState = payload[6] === 0x01;
+        const focusOnVoiceState = payload[6] === 0x01;
         const level = payload[7];
-        this._ambientSoundLevel = level >= 0 && level <= 20 ? level : 10;
+        const ambientSoundLevel = level >= 0 && level <= 20 ? level : 10;
 
-        this._log.info(
-            `PARSE AmbientSoundControl: Mode: ${mode} Voice: ${this._focusOnVoiceState} ` +
+        this._log.info(`PARSE AmbientSoundControl: Mode: ${mode} Voice: ${focusOnVoiceState} ` +
                 `Level: ${level}`);
 
-        this._callbacks?.updateAmbientSoundControl?.(
-            mode, this._focusOnVoiceState, this._ambientSoundLevel);
+        this._callbacks?.updateAmbientSoundControl?.(mode, focusOnVoiceState, ambientSoundLevel);
     }
 
     setAmbientSoundControl(mode, focusOnVoice, level) {
@@ -312,12 +309,9 @@ export const SonySocketV1 = GObject.registerClass({
         payload.push(0x01);
         payload.push(focusOnVoice ? 0x01 : 0x00);
 
-        const attlevel = modeIsOff || modeIsAmbient ? level : 0x00;
+        const ambientSoundLevel = modeIsOff || modeIsAmbient ? level : 0x00;
 
-        this._focusOnVoiceState = focusOnVoice;
-        this._ambientSoundLevel = level;
-
-        payload.push(attlevel);
+        payload.push(ambientSoundLevel);
         this.addMessageQueue(MessageType.COMMAND_1, payload, 'SetAmbientSoundControl');
     }
 
