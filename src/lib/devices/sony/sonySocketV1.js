@@ -607,7 +607,7 @@ export const SonySocketV1 = GObject.registerClass({
     setAutomaticPowerOff(enabled, time) {
         this._log.info(`SET AutomaticPowerOff: enabled=${enabled} time: ${time}`);
 
-        let state = AutoPowerOffState.DISABLED;
+        let state = AutoPowerOffState.DISABLE;
 
         if (this._automaticPowerOffByTime) {
             if (!isValidByte(time, AutoPowerOffTime)) {
@@ -619,9 +619,10 @@ export const SonySocketV1 = GObject.registerClass({
                 state = time;
             else
                 time = 0x00;
-        } else if (enabled) {
-            state = AutoPowerOffState.ENABLE;
+        } else {
             time = 0x00;
+            if (enabled)
+                state = AutoPowerOffState.ENABLE;
         }
 
         const payload = [PTV1T1.SYSTEM_SET_PARAM];
