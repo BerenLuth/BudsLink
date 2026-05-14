@@ -366,3 +366,4 @@ export const SonySocketBase = GObject.registerClass({
         super.destroy();
     }
 });
+
